@@ -58,7 +58,7 @@ void DrawingWindow::savePPM(const std::string &filename) const {
 
 bool DrawingWindow::pollForInputEvents(SDL_Event &event) {
 	if (SDL_PollEvent(&event)) {
-		if ((event.type == SDL_QUIT) || ((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE))) {
+		if ((event.type == SDL_QUIT) || ((event.type == SDL_WINDOWEVENT) && (event.window.event == SDL_WINDOWEVENT_CLOSE)) || ((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_ESCAPE))) {
 			SDL_DestroyTexture(texture);
 			SDL_DestroyRenderer(renderer);
 			SDL_DestroyWindow(window);
