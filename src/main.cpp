@@ -1,18 +1,41 @@
 #include <DrawingWindow.h>
 #include <Colour.h>
+#include <Point3D.h>
 #include <Point2D.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <limits>
+#include <math.h>
 
 #define WIDTH 600
 #define HEIGHT 600
 
 
-/////////////////////////
-// WINDOW/UI FUNCTIONS //
-/////////////////////////
+///////////////
+// CONSTANTS //
+///////////////
+
+Point3D camera = Point3D(0, 0, -10);
+Point3D cameraAngle = Point3D(0, 0, 1);
+
+std::vector<Point3D> cubeV = {Point3D(1, 1, 1), Point3D(1, 1, -1), Point3D(1, -1, 1), Point3D(1, -1, -1), Point3D(-1, 1, 1), Point3D(-1, 1, -1), Point3D(-1, -1, 1), Point3D(-1, -1, -1)};
+
+
+////////////////////////
+// 3D MATHS FUNCTIONS //
+////////////////////////
+
+Point2D get2Dfrom3D(Point3D p){
+    Point3D camToPoint = p-camera;
+    float i = ( (camToPoint.x/camToPoint.z) + 1) * WIDTH/2;
+    float j = ( (camToPoint.y/camToPoint.z) + 1) * WIDTH/2;
+    return Point2D(i, j);
+}
+
+////////////////////////
+// GRAPHICS FUNCTIONS //
+////////////////////////
 
 //packs Colour object into unsigned int colours
 uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(col.green) << 8) + int(col.blue); }
@@ -26,6 +49,18 @@ std::vector<float> linearInterpolation(float start, float end, int count){
 		result.push_back( (start + i*step) );
 	}
 	return result;
+}
+
+void fillOval(DrawingWindow &window, Point2D p, int r, uint32_t col){
+    for(int y = 0; y < r; y++){
+        int x = sqrt(r*r - y*y);
+        for(int i = 0; i < x; i++){
+		  window.setPixelColour(p.x + i, p.y + y, col);
+		  window.setPixelColour(p.x + i, p.y - y, col);
+		  window.setPixelColour(p.x - i, p.y + y, col);
+		  window.setPixelColour(p.x - i, p.y - y, col);
+        }
+    }
 }
 
 //line drawing function
@@ -67,31 +102,54 @@ void fillTriangle(DrawingWindow &window, Point2D p1, Point2D p2, Point2D p3, uin
 	}
 	float topH = top.y-mid.y;
 	float botH = mid.y-bot.y;
-	std::vector<float> leftTopXs = linearInterpolation(top.x, mid.x, topH);
-	std::vector<float> rightTopXs = linearInterpolation(top.x, midAdj.x, topH);
-	std::vector<float> leftBotXs = linearInterpolation(mid.x, bot.x, botH);
-	std::vector<float> rightBotXs = linearInterpolation(midAdj.x, bot.x, botH);
-	std::vector<float> leftSideXs;
-	std::vector<float> rightSideXs;
-	leftSideXs.insert( leftSideXs.end(), leftTopXs.begin(), leftTopXs.end() );
-	leftSideXs.insert( leftSideXs.end(), leftBotXs.begin(), leftBotXs.end() );
-	rightSideXs.insert( rightSideXs.end(), rightTopXs.begin(), rightTopXs.end() );
-	rightSideXs.insert( rightSideXs.end(), rightBotXs.begin(), rightBotXs.end() );
-	for(int i = 0; i < (top.y - bot.y); i++){
-		for(int j = leftSideXs[i]; j <= rightSideXs[i]; j++){
+	
+    float leftTopStep = (mid.x - top.x) / topH;
+    float rightTopStep = (midAdj.x - top.x) / topH;
+
+    float leftBotStep = (bot.x - mid.x) / botH;
+    float rightBotStep = (bot.x - midAdj.x) / botH;
+	
+    float left = top.x;
+    float right = top.x;
+
+	for(int i = 0; i < topH; i++){
+        int startOfLine = left + (leftTopStep * i);
+        int endOfLine = right + (rightTopStep * i);
+		for(int j = startOfLine; j <= endOfLine; j++){
 			window.setPixelColour(j, top.y - i, col);
 		}
 	}
+    
+    left = mid.x;
+    right = midAdj.x;
+
+    for(int i = 0; i < botH; i++){
+        int startOfLine = left + (leftBotStep * i);
+        int endOfLine = right + (rightBotStep * i);
+        for(int j = startOfLine; j <= endOfLine; j++){
+            window.setPixelColour(j, mid.y - i, col);
+        }
+    }
 	window.setPixelColour(top.x, top.y, col);
 	window.setPixelColour(mid.x, mid.y, col);
 	window.setPixelColour(bot.x, bot.y, col);
 }
 
+///////////////////////////
+// MAIN DRAWING FUNCTION //
+///////////////////////////
+
 //main draw function for page refreshes
 void draw(DrawingWindow &window) {
 	window.clearPixels();
-	fillTriangle(window, Point2D(50, 100), Point2D(220, 300), Point2D(100, 400), packCol(Colour(255, 255, 255)));
+    for(int i = 0; i < 8; i++){
+        fillOval(window, get2Dfrom3D(cubeVertices[i]), 10, packCol(Colour(255, 0, 0)));
+    }
 }
+
+////////////////////
+// EVENT HANDLERS //
+////////////////////
 
 //event handler function - each frame execute one event from the queue
 void handleEvent(SDL_Event event, DrawingWindow &window) {
