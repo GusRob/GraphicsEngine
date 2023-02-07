@@ -1,0 +1,53 @@
+newmtl Blue
+Kd 0.000000 0.000000 1.000000
+
+newmtl White
+Kd 1.000000 1.000000 1.000000
+
+newmtl Grey
+map_Bn assets/bricksBump.ppm
+map_Kd assets/bricksTexture.ppm
+Kd 0.700000 0.700000 0.700000
+
+newmtl Green
+map_Bn assets/bricksBump.ppm
+map_Kd assets/bricksTexture.ppm
+Kd 0.000000 1.000000 0.000000
+
+newmtl Yellow
+Rfli 0.2
+Kd 1.000000 1.000000 0.000000
+
+newmtl Magenta
+Rfli 0.2
+Kd 1.000000 0.000000 1.000000
+
+newmtl Cyan
+Rfli 0.2
+Kd 0.000000 1.000000 1.000000
+
+newmtl Red
+Rfli 1
+Frsn 0.9
+Kd 0.710000 0.580000 0.000000
+
+newmtl Mirror
+Rfli 1
+Frsn 0
+Kd 0.752941 0.752941 0.752941
+
+newmtl TextureMap
+map_Kd assets/logo/texture.ppm
+Kd 1.00000 0.00000 1.00000
+
+newmtl Glass
+Rfri 1.5
+Rfli 0.5
+Frsn 0.9
+Kd 0.300000 0.700000 1.00000
+
+newmtl Bubble
+Rfri 1
+Rfli 0.5
+Frsn 0.9
+Kd 1.000000 1.000000 1.00000
