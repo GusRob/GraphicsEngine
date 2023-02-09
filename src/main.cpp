@@ -1,7 +1,11 @@
 #include <DrawingWindow.h>
 #include <Colour.h>
-#include <Point3D.h>
-#include <Point2D.h>
+#include <Triangle.h>
+#include <Vector.h>
+
+#include <Draw.h>
+#include <Raster.h>
+
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -16,22 +20,42 @@
 // CONSTANTS //
 ///////////////
 
-Point3D camera = Point3D(0, 0, -10);
-Point3D cameraAngle = Point3D(0, 0, 1);
+Vector camera = Vector(0, 0, -10);
+Vector cameraAngle = Vector(0, 0, 1);
 
-std::vector<Point3D> cubeV = {Point3D(1, 1, 1), Point3D(1, 1, -1), Point3D(1, -1, 1), Point3D(1, -1, -1), Point3D(-1, 1, 1), Point3D(-1, 1, -1), Point3D(-1, -1, 1), Point3D(-1, -1, -1)};
+std::vector<Vector> cubeV = {
+    Vector(1, 1, 1), 
+    Vector(1, 1, -1), 
+    Vector(1, -1, 1), 
+    Vector(1, -1, -1), 
+    Vector(-1, 1, 1), 
+    Vector(-1, 1, -1), 
+    Vector(-1, -1, 1), 
+    Vector(-1, -1, -1)
+};
 
+Colour red = Colour(255, 0, 0);
+Colour green = Colour(0, 255, 0);
+Colour blue = Colour(0, 0, 255);
+Colour yellow = Colour(0, 255, 255);
+Colour pink = Colour(255, 255, 0);
+Colour white = Colour(255, 255, 255);
 
-////////////////////////
-// 3D MATHS FUNCTIONS //
-////////////////////////
+std::vector<Triangle> cubeF = {
+    Triangle(cubeV[0], cubeV[1], cubeV[2], red),
+    Triangle(cubeV[3], cubeV[1], cubeV[2], red),
+    Triangle(cubeV[4], cubeV[5], cubeV[7], pink),
+    Triangle(cubeV[7], cubeV[5], cubeV[7], pink),
+    Triangle(cubeV[0], cubeV[2], cubeV[4], white),
+    Triangle(cubeV[6], cubeV[2], cubeV[4], white),
+    Triangle(cubeV[1], cubeV[3], cubeV[5], green),
+    Triangle(cubeV[7], cubeV[3], cubeV[5], green),
+    Triangle(cubeV[0], cubeV[1], cubeV[4], blue),
+    Triangle(cubeV[5], cubeV[1], cubeV[4], blue),
+    Triangle(cubeV[2], cubeV[3], cubeV[6], yellow),
+    Triangle(cubeV[7], cubeV[3], cubeV[6], yellow)
+};
 
-Point2D get2Dfrom3D(Point3D p){
-    Point3D camToPoint = p-camera;
-    float i = ( (camToPoint.x/camToPoint.z) + 1) * WIDTH/2;
-    float j = ( (camToPoint.y/camToPoint.z) + 1) * WIDTH/2;
-    return Point2D(i, j);
-}
 
 ////////////////////////
 // GRAPHICS FUNCTIONS //
@@ -40,101 +64,6 @@ Point2D get2Dfrom3D(Point3D p){
 //packs Colour object into unsigned int colours
 uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(col.green) << 8) + int(col.blue); }
 
-
-//linear interpolation function used for rasterising
-std::vector<float> linearInterpolation(float start, float end, int count){
-	float step = (end-start)/count;
-	std::vector<float> result;
-	for(int i = 0; i < count; i++){
-		result.push_back( (start + i*step) );
-	}
-	return result;
-}
-
-void fillOval(DrawingWindow &window, Point2D p, int r, uint32_t col){
-    for(int y = 0; y < r; y++){
-        int x = sqrt(r*r - y*y);
-        for(int i = 0; i < x; i++){
-		  window.setPixelColour(p.x + i, p.y + y, col);
-		  window.setPixelColour(p.x + i, p.y - y, col);
-		  window.setPixelColour(p.x - i, p.y + y, col);
-		  window.setPixelColour(p.x - i, p.y - y, col);
-        }
-    }
-}
-
-//line drawing function
-void drawLine(DrawingWindow &window, Point2D p1, Point2D p2, uint32_t col){
-	int noPixels = fmax( abs(p1.x-p2.x), abs(p1.y-p2.y) );
-	std::vector<float> xs = linearInterpolation(p1.x, p2.x, noPixels);
-	std::vector<float> ys = linearInterpolation(p1.y, p2.y, noPixels);
-	for(int i = 0; i < noPixels; i++){
-		window.setPixelColour(xs[i], ys[i], col);
-	}
-}
-
-//triangle drawing function
-void drawTriangle(DrawingWindow &window, Point2D p1, Point2D p2, Point2D p3, uint32_t col){
-	drawLine(window, p1, p2, col);
-	drawLine(window, p2, p3, col);
-	drawLine(window, p3, p1, col);
-}
-
-//triangle filling function
-void fillTriangle(DrawingWindow &window, Point2D p1, Point2D p2, Point2D p3, uint32_t col){
-	Point2D top = p1;
-	Point2D mid = p2;
-	Point2D bot = p3;
-	if(bot.y > mid.y){
-		std::swap(bot, mid);
-	}
-	if(mid.y > top.y){
-		std::swap(mid, top);
-		if(bot.y > mid.y){
-			std::swap(bot, mid);
-		}
-	}
-	float fracUpOfMidAdj = (mid.y-bot.y) / (top.y-bot.y);
-	float xVal = (bot.x + fracUpOfMidAdj*(top.x-bot.x));
-	Point2D midAdj = Point2D(xVal, mid.y); //cutoff of top-------bot
-	if(midAdj.x < mid.x){
-		std::swap(midAdj, mid);
-	}
-	float topH = top.y-mid.y;
-	float botH = mid.y-bot.y;
-	
-    float leftTopStep = (mid.x - top.x) / topH;
-    float rightTopStep = (midAdj.x - top.x) / topH;
-
-    float leftBotStep = (bot.x - mid.x) / botH;
-    float rightBotStep = (bot.x - midAdj.x) / botH;
-	
-    float left = top.x;
-    float right = top.x;
-
-	for(int i = 0; i < topH; i++){
-        int startOfLine = left + (leftTopStep * i);
-        int endOfLine = right + (rightTopStep * i);
-		for(int j = startOfLine; j <= endOfLine; j++){
-			window.setPixelColour(j, top.y - i, col);
-		}
-	}
-    
-    left = mid.x;
-    right = midAdj.x;
-
-    for(int i = 0; i < botH; i++){
-        int startOfLine = left + (leftBotStep * i);
-        int endOfLine = right + (rightBotStep * i);
-        for(int j = startOfLine; j <= endOfLine; j++){
-            window.setPixelColour(j, mid.y - i, col);
-        }
-    }
-	window.setPixelColour(top.x, top.y, col);
-	window.setPixelColour(mid.x, mid.y, col);
-	window.setPixelColour(bot.x, bot.y, col);
-}
-
 ///////////////////////////
 // MAIN DRAWING FUNCTION //
 ///////////////////////////
@@ -142,8 +71,8 @@ void fillTriangle(DrawingWindow &window, Point2D p1, Point2D p2, Point2D p3, uin
 //main draw function for page refreshes
 void draw(DrawingWindow &window) {
 	window.clearPixels();
-    for(int i = 0; i < 8; i++){
-        fillOval(window, get2Dfrom3D(cubeVertices[i]), 10, packCol(Colour(255, 0, 0)));
+    for(int i = 1; i < 5; i++){
+        drawOval(window, Vector(100*i, 100*i), 10, packCol(Colour(255, 0, 0)));
     }
 }
 

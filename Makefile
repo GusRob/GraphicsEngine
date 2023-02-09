@@ -7,9 +7,11 @@ SOURCE_FILE := src/$(PROJECT_NAME).cpp
 OBJECT_FILE := $(BUILD_DIR)/$(PROJECT_NAME).o
 EXECUTABLE := $(BUILD_DIR)/$(PROJECT_NAME)
 SDW_DIR := ./libs/sdw/
-DJIK_DIR := ./libs/djik/
+REND_DIR := ./libs/rend/
 SDW_SOURCE_FILES := $(wildcard $(SDW_DIR)*.cpp)
 SDW_OBJECT_FILES := $(patsubst $(SDW_DIR)%.cpp, $(BUILD_DIR)/%.o, $(SDW_SOURCE_FILES))
+REND_SOURCE_FILES := $(wildcard $(REND_DIR)*.cpp)
+REND_OBJECT_FILES := $(patsubst $(REND_DIR)%.cpp, $(BUILD_DIR)/%.o, $(REND_SOURCE_FILES))
 
 # Build settings
 COMPILER := clang++
@@ -30,31 +32,21 @@ SDL_COMPILER_FLAGS := $(shell sdl2-config --cflags)
 SDL_LINKER_FLAGS := -lSDL2_image -lSDL2_ttf $(shell sdl2-config --libs)
 SDW_LINKER_FLAGS := $(SDW_OBJECT_FILES)
 
+REND_COMPILER_FLAGS := -I$(REND_DIR)
+REND_LINKER_FLAGS := $(REND_OBJECT_FILES)
+
 default: debug
 
 # Rule to compile and link for use with a debugger (although works fine even if you aren't using a debugger !)
-debug: $(SDW_OBJECT_FILES)
-	$(COMPILER) $(COMPILER_OPTIONS) $(DEBUG_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS)
-	$(COMPILER) $(LINKER_OPTIONS) $(DEBUG_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
-	./$(EXECUTABLE)
-
-# Rule to help find runtime errors (when you get a segmentation fault)
-# NOTE: This needs the "Address Sanitizer" library to be installed in order to work (so it might not work on lab machines !)
-diagnostic: $(SDW_OBJECT_FILES)
-	$(COMPILER) $(COMPILER_OPTIONS) $(FUSSY_OPTIONS) $(SANITIZER_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS)
-	$(COMPILER) $(LINKER_OPTIONS) $(FUSSY_OPTIONS) $(SANITIZER_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
+debug: $(SDW_OBJECT_FILES) $(REND_OBJECT_FILES)
+	$(COMPILER) $(COMPILER_OPTIONS) $(DEBUG_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS) $(REND_COMPILER_FLAGS)
+	$(COMPILER) $(LINKER_OPTIONS) $(DEBUG_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(REND_LINKER_FLAGS) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
 	./$(EXECUTABLE)
 
 # Rule to build for high performance executable (for manually testing interaction)
 speedy: $(SDW_OBJECT_FILES)
-	$(COMPILER) $(COMPILER_OPTIONS) $(SPEEDY_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS)
-	$(COMPILER) $(LINKER_OPTIONS) $(SPEEDY_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
-	./$(EXECUTABLE)
-
-# Rule to compile and link for final production release
-production: $(SDW_OBJECT_FILES)
-	$(COMPILER) $(COMPILER_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS)
-	$(COMPILER) $(LINKER_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
+	$(COMPILER) $(COMPILER_OPTIONS) $(SPEEDY_OPTIONS) -o $(OBJECT_FILE) $(SOURCE_FILE) $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS) $(REND_COMPILER_FLAGS)
+	$(COMPILER) $(LINKER_OPTIONS) $(SPEEDY_OPTIONS) -o $(EXECUTABLE) $(OBJECT_FILE) $(REND_LINKER_FLAGS) $(SDW_LINKER_FLAGS) $(SDL_LINKER_FLAGS)
 	./$(EXECUTABLE)
 
 # Rule for building all of the the DisplayWindow classes
@@ -62,10 +54,10 @@ $(BUILD_DIR)/%.o: $(SDW_DIR)%.cpp
 	@mkdir -p $(BUILD_DIR)
 	$(COMPILER) $(COMPILER_OPTIONS) -c -o $@ $^ $(SDL_COMPILER_FLAGS)
 
-# Rule for building all of the the Djikstra classes
-$(BUILD_DIR)/%.o: $(DJIK_DIR)%.cpp
+# Rule for building all of the the rendering classes
+$(BUILD_DIR)/%.o: $(REND_DIR)%.cpp
 	@mkdir -p $(BUILD_DIR)
-	$(COMPILER) $(COMPILER_OPTIONS) -c -o $@ $^ $(DJIK_COMPILER_FLAGS)
+	$(COMPILER) $(COMPILER_OPTIONS) -c -o $@ $^ $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS)
 
 # Files to remove during clean
 clean:
