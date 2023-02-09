@@ -1,6 +1,8 @@
 #include "Draw.h"
 #include <math.h>
+#include "Raster.h"
 
+uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(col.green) << 8) + int(col.blue); }
 
 //linear interpolation function used for rasterising
 std::vector<float> linearInterpolation(float start, float end, int count){
@@ -12,7 +14,8 @@ std::vector<float> linearInterpolation(float start, float end, int count){
 	return result;
 }
 
-void drawOval(DrawingWindow &window, Vector p, int r, uint32_t col){
+void drawOval(DrawingWindow &window, Vector p, int r, Colour colour){
+    uint32_t col = packCol(colour);
     for(int y = 0; y < r; y++){
         int x = sqrt(r*r - y*y);
         for(int i = 0; i < x; i++){
@@ -25,10 +28,11 @@ void drawOval(DrawingWindow &window, Vector p, int r, uint32_t col){
 }
 
 //line drawing function
-void drawLine(DrawingWindow &window, Vector p1, Vector p2, uint32_t col){
-	int noPixels = fmax( abs(p1.x-p2.x), abs(p1.y-p2.y) );
-	std::vector<float> xs = linearInterpolation(p1.x, p2.x, noPixels);
-	std::vector<float> ys = linearInterpolation(p1.y, p2.y, noPixels);
+void drawLine(DrawingWindow &window, Vector p0, Vector p1, Colour colour){
+    uint32_t col = packCol(colour);
+	int noPixels = fmax( abs(p0.x-p1.x), abs(p0.y-p1.y) );
+	std::vector<float> xs = linearInterpolation(p0.x, p1.x, noPixels);
+	std::vector<float> ys = linearInterpolation(p0.y, p1.y, noPixels);
 	for(int i = 0; i < noPixels; i++){
 		window.setPixelColour(xs[i], ys[i], col);
 	}
@@ -36,17 +40,18 @@ void drawLine(DrawingWindow &window, Vector p1, Vector p2, uint32_t col){
 
 
 //triangle drawing function
-void drawTriangle(DrawingWindow &window, Vector p1, Vector p2, Vector p3, uint32_t col){
-	drawLine(window, p1, p2, col);
-	drawLine(window, p2, p3, col);
-	drawLine(window, p3, p1, col);
+void drawTriangle(DrawingWindow &window, Triangle tri){
+	drawLine(window, tri.p0, tri.p1, tri.col);
+	drawLine(window, tri.p1, tri.p2, tri.col);
+	drawLine(window, tri.p2, tri.p0, tri.col);
 }
 
 //triangle filling function
-void fillTriangle(DrawingWindow &window, Vector p1, Vector p2, Vector p3, uint32_t col){
-	Vector top = p1;
-	Vector mid = p2;
-	Vector bot = p3;
+void fillTriangle(DrawingWindow &window, Triangle tri){
+    uint32_t col = packCol(tri.col);
+	Vector top = tri.p0;
+	Vector mid = tri.p1;
+	Vector bot = tri.p2;
 	if(bot.y > mid.y){
 		std::swap(bot, mid);
 	}

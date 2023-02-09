@@ -1,4 +1,5 @@
 #include "Vector.h"
+#include <math.h>
 
 Vector::Vector(){}
 
@@ -18,14 +19,26 @@ std::ostream &operator<<(std::ostream &os, const Vector &point) {
 }
 
 
-Vector operator-(Vector p1, Vector p2){
-    return Vector(p1.x-p2.x, p1.y-p2.y, p1.z-p2.z);
+Vector operator-(Vector p0, Vector p1){
+    return Vector(p0.x-p1.x, p0.y-p1.y, p0.z-p1.z);
 }
 
-Vector operator+(Vector p1, Vector p2){
-    return Vector(p1.x+p2.x, p1.y+p2.y, p1.z+p2.z);
+Vector operator+(Vector p0, Vector p1){
+    return Vector(p0.x+p1.x, p0.y+p1.y, p0.z+p1.z);
+}
+
+Vector operator*(Vector p0, Vector p1){
+    return Vector(p0.x*p1.x, p0.y*p1.y, p0.z*p1.z);
+}
+
+Vector operator/(Vector p0, Vector p1){
+    return Vector(p0.x/p1.x, p0.y/p1.y, p0.z/p1.z);
 }
 
 Vector operator-(Vector p){
     return Vector(-p.x, -p.y, -p.z);
+}
+
+float size(Vector v){
+    return sqrt( (v.x*v.x) + (v.y*v.y) + (v.z*v.z) );
 }

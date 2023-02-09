@@ -2,5 +2,10 @@
 
 #include <DrawingWindow.h>
 #include <Vector.h>
+#include <Scene.h>
 
-Vector get2DPointFrom3D(Vector p);
+Vector getPointOnCanvas(Scene &scene, Vector p);
+
+void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle tri);
+
+void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle tri);

@@ -6,11 +6,11 @@
 #include "Vector.h"
 
 struct Triangle {
+	Vector p0{};
 	Vector p1{};
-	Vector p2{};
-    Vector p3{};
+    Vector p2{};
     Colour col{};
-	Triangle(Vector p1_init, Vector p2_init, Vector p3_init, Colour col_init);
+	Triangle(Vector p0_init, Vector p1_init, Vector p2_init, Colour col_init);
 };
 
 std::ostream &operator<<(std::ostream &os, const Triangle &tri);

@@ -2,6 +2,7 @@
 #include <Colour.h>
 #include <Triangle.h>
 #include <Vector.h>
+#include <Scene.h>
 
 #include <Draw.h>
 #include <Raster.h>
@@ -11,6 +12,7 @@
 #include <vector>
 #include <limits>
 #include <math.h>
+#include <iostream>
 
 #define WIDTH 600
 #define HEIGHT 600
@@ -20,8 +22,7 @@
 // CONSTANTS //
 ///////////////
 
-Vector camera = Vector(0, 0, -10);
-Vector cameraAngle = Vector(0, 0, 1);
+Scene scene = Scene(WIDTH, HEIGHT);
 
 std::vector<Vector> cubeV = {
     Vector(1, 1, 1), 
@@ -34,35 +35,27 @@ std::vector<Vector> cubeV = {
     Vector(-1, -1, -1)
 };
 
-Colour red = Colour(255, 0, 0);
-Colour green = Colour(0, 255, 0);
-Colour blue = Colour(0, 0, 255);
-Colour yellow = Colour(0, 255, 255);
-Colour pink = Colour(255, 255, 0);
-Colour white = Colour(255, 255, 255);
+Colour red = Colour("red", 255, 0, 0);
+Colour green = Colour("green", 0, 255, 0);
+Colour blue = Colour("blue", 0, 0, 255);
+Colour cyan = Colour("cyan", 0, 255, 255);
+Colour yellow = Colour("yellow", 255, 255, 0);
+Colour white = Colour("white", 255, 255, 255);
 
 std::vector<Triangle> cubeF = {
-    Triangle(cubeV[0], cubeV[1], cubeV[2], red),
-    Triangle(cubeV[3], cubeV[1], cubeV[2], red),
-    Triangle(cubeV[4], cubeV[5], cubeV[7], pink),
-    Triangle(cubeV[7], cubeV[5], cubeV[7], pink),
-    Triangle(cubeV[0], cubeV[2], cubeV[4], white),
-    Triangle(cubeV[6], cubeV[2], cubeV[4], white),
-    Triangle(cubeV[1], cubeV[3], cubeV[5], green),
-    Triangle(cubeV[7], cubeV[3], cubeV[5], green),
-    Triangle(cubeV[0], cubeV[1], cubeV[4], blue),
-    Triangle(cubeV[5], cubeV[1], cubeV[4], blue),
-    Triangle(cubeV[2], cubeV[3], cubeV[6], yellow),
-    Triangle(cubeV[7], cubeV[3], cubeV[6], yellow)
+    Triangle(cubeV[4], cubeV[5], cubeV[7], yellow),//left
+    Triangle(cubeV[4], cubeV[6], cubeV[7], yellow),//left
+    Triangle(cubeV[0], cubeV[2], cubeV[4], white),//back
+    Triangle(cubeV[6], cubeV[2], cubeV[4], white),//back
+    Triangle(cubeV[1], cubeV[3], cubeV[5], green),//front
+    Triangle(cubeV[7], cubeV[3], cubeV[5], green),//front
+    Triangle(cubeV[0], cubeV[1], cubeV[4], blue),//base
+    Triangle(cubeV[5], cubeV[1], cubeV[4], blue),//base
+    Triangle(cubeV[2], cubeV[3], cubeV[6], cyan),//top
+    Triangle(cubeV[7], cubeV[3], cubeV[6], cyan),//top
+    Triangle(cubeV[0], cubeV[1], cubeV[2], red),//right
+    Triangle(cubeV[3], cubeV[1], cubeV[2], red)//right
 };
-
-
-////////////////////////
-// GRAPHICS FUNCTIONS //
-////////////////////////
-
-//packs Colour object into unsigned int colours
-uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(col.green) << 8) + int(col.blue); }
 
 ///////////////////////////
 // MAIN DRAWING FUNCTION //
@@ -71,8 +64,23 @@ uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(c
 //main draw function for page refreshes
 void draw(DrawingWindow &window) {
 	window.clearPixels();
-    for(int i = 1; i < 5; i++){
-        drawOval(window, Vector(100*i, 100*i), 10, packCol(Colour(255, 0, 0)));
+    scene.resetBuf();
+    
+    float cos10 = cos(0.01);
+    float sin10 = sin(0.01);
+    
+    float rotArr[][3] = {{cos10, 0, sin10}, {0, 1, 0}, {-sin10, 0, cos10}};
+
+    Matrix rotate = Matrix(rotArr);
+        
+    
+    
+    for(int i = 0; i < 12; i++){
+        fill3DTriangle(window, scene, cubeF[i]);
+        
+        cubeF[i].p0 = rotate * cubeF[i].p0;
+        cubeF[i].p1 = rotate * cubeF[i].p1;
+        cubeF[i].p2 = rotate * cubeF[i].p2;
     }
 }
 
