@@ -22,40 +22,8 @@
 // CONSTANTS //
 ///////////////
 
+int frameCount = 0;
 Scene scene = Scene(WIDTH, HEIGHT);
-
-std::vector<Vector> cubeV = {
-    Vector(1, 1, 1), 
-    Vector(1, 1, -1), 
-    Vector(1, -1, 1), 
-    Vector(1, -1, -1), 
-    Vector(-1, 1, 1), 
-    Vector(-1, 1, -1), 
-    Vector(-1, -1, 1), 
-    Vector(-1, -1, -1)
-};
-
-Colour red = Colour("red", 255, 0, 0);
-Colour green = Colour("green", 0, 255, 0);
-Colour blue = Colour("blue", 0, 0, 255);
-Colour cyan = Colour("cyan", 0, 255, 255);
-Colour yellow = Colour("yellow", 255, 255, 0);
-Colour white = Colour("white", 255, 255, 255);
-
-std::vector<Triangle> cubeF = {
-    Triangle(cubeV[4], cubeV[5], cubeV[7], yellow),//left
-    Triangle(cubeV[4], cubeV[6], cubeV[7], yellow),//left
-    Triangle(cubeV[0], cubeV[2], cubeV[4], white),//back
-    Triangle(cubeV[6], cubeV[2], cubeV[4], white),//back
-    Triangle(cubeV[1], cubeV[3], cubeV[5], green),//front
-    Triangle(cubeV[7], cubeV[3], cubeV[5], green),//front
-    Triangle(cubeV[0], cubeV[1], cubeV[4], blue),//base
-    Triangle(cubeV[5], cubeV[1], cubeV[4], blue),//base
-    Triangle(cubeV[2], cubeV[3], cubeV[6], cyan),//top
-    Triangle(cubeV[7], cubeV[3], cubeV[6], cyan),//top
-    Triangle(cubeV[0], cubeV[1], cubeV[2], red),//right
-    Triangle(cubeV[3], cubeV[1], cubeV[2], red)//right
-};
 
 ///////////////////////////
 // MAIN DRAWING FUNCTION //
@@ -64,19 +32,26 @@ std::vector<Triangle> cubeF = {
 //main draw function for page refreshes
 void draw(DrawingWindow &window) {
 	window.clearPixels();
-    scene.resetBuf();
-    
-    float cos10 = cos(0.01);
-    float sin10 = sin(0.01);
-    
-    float rotArrY[][3] = {{cos10, 0, sin10}, {0, 1, 0}, {-sin10, 0, cos10}};
+	scene.resetBuf();
 
-    Matrix rotateY = Matrix(rotArrY);
-    
-    scene.camera = rotateY * scene.camera;
-    scene.lookAt(Vector(0, 0, 0));
-    
-    scene.rasterScene(window);
+/*
+	float cos10 = cos(0.01);
+	float sin10 = sin(0.01);
+
+	float rotArrY[][3] = {{cos10, 0, sin10}, {0, 1, 0}, {-sin10, 0, cos10}};
+
+	Matrix rotateY = Matrix(rotArrY);
+
+	scene.camera = rotateY * scene.camera;
+	*/
+	scene.camera = Vector(0, 0, 10);
+	scene.lookAt(Vector(0, 0, 0));
+
+	if(frameCount%100 == 0){
+		scene.raytraceScene(window);
+	} else {
+		scene.rasterScene(window);
+	}
 }
 
 ////////////////////
@@ -135,7 +110,7 @@ std::vector<Colour> mtlParser(std::string mtlFilepath){
 					currentCol.blue = round(std::stof(currentWord)*255);
 					mode = 0;
 					c = ifs.get();
-                }
+				}
 			}
 			currentWord = "";
 		} else {
@@ -250,8 +225,7 @@ void objParser(std::vector<Triangle> &dest, std::string objFilepath, float scale
 					}
 					toAdd.push_back(addition);
 				}
-				Triangle newTri = Triangle( Vector(vs[toAdd[0][0]]), Vector(vs[toAdd[1][0]]), Vector(vs[toAdd[2][0]]), materials[currentMat]);
-				//moveTriangle(newTri, translation);
+				Triangle newTri = Triangle( Vector(vs[toAdd[0][0]])+translation, Vector(vs[toAdd[1][0]]) + translation, Vector(vs[toAdd[2][0]]) + translation, materials[currentMat]);
 				dest.push_back(newTri);
 			} else if(target == 'u'){
 				c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();
@@ -281,11 +255,11 @@ void objParser(std::vector<Triangle> &dest, std::string objFilepath, float scale
 int main(int argc, char *argv[]) {
 	DrawingWindow window = DrawingWindow(WIDTH, HEIGHT, false);
 	SDL_Event event;
-    
-    std::vector<Colour> cols = mtlParser("assets/materials.mtl");
-    std::vector<Triangle> model;
+
+	std::vector<Colour> cols = mtlParser("assets/materials.mtl");
+	std::vector<Triangle> model;
 	objParser(model, "assets/cornell-box.obj", 1, cols, Vector(0, 0, 0));
-    scene.objects.push_back(SceneObject(model));
+	scene.objects.push_back(SceneObject(model));
 
 	while (true) {
 		handleMousePos();
@@ -298,5 +272,6 @@ int main(int argc, char *argv[]) {
 
 		draw(window);
 		window.renderFrame();
+		frameCount+=1;
 	}
 }

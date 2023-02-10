@@ -15,21 +15,21 @@ std::vector<float> linearInterpolation(float start, float end, int count){
 }
 
 void drawOval(DrawingWindow &window, Vector p, int r, Colour colour){
-    uint32_t col = packCol(colour);
-    for(int y = 0; y < r; y++){
-        int x = sqrt(r*r - y*y);
-        for(int i = 0; i < x; i++){
-		  window.setPixelColour(p.x + i, p.y + y, col);
-		  window.setPixelColour(p.x + i, p.y - y, col);
-		  window.setPixelColour(p.x - i, p.y + y, col);
-		  window.setPixelColour(p.x - i, p.y - y, col);
-        }
-    }
+	uint32_t col = packCol(colour);
+	for(int y = 0; y < r; y++){
+		int x = sqrt(r*r - y*y);
+		for(int i = 0; i < x; i++){
+			window.setPixelColour(p.x + i, p.y + y, col);
+			window.setPixelColour(p.x + i, p.y - y, col);
+			window.setPixelColour(p.x - i, p.y + y, col);
+			window.setPixelColour(p.x - i, p.y - y, col);
+		}
+	}
 }
 
 //line drawing function
 void drawLine(DrawingWindow &window, Vector p0, Vector p1, Colour colour){
-    uint32_t col = packCol(colour);
+	uint32_t col = packCol(colour);
 	int noPixels = fmax( abs(p0.x-p1.x), abs(p0.y-p1.y) );
 	std::vector<float> xs = linearInterpolation(p0.x, p1.x, noPixels);
 	std::vector<float> ys = linearInterpolation(p0.y, p1.y, noPixels);
@@ -48,7 +48,7 @@ void drawTriangle(DrawingWindow &window, Triangle tri){
 
 //triangle filling function
 void fillTriangle(DrawingWindow &window, Triangle tri){
-    uint32_t col = packCol(tri.col);
+	uint32_t col = packCol(tri.col);
 	Vector top = tri.p0;
 	Vector mid = tri.p1;
 	Vector bot = tri.p2;
@@ -69,34 +69,34 @@ void fillTriangle(DrawingWindow &window, Triangle tri){
 	}
 	float topH = top.y-mid.y;
 	float botH = mid.y-bot.y;
-	
-    float leftTopStep = (mid.x - top.x) / topH;
-    float rightTopStep = (midAdj.x - top.x) / topH;
 
-    float leftBotStep = (bot.x - mid.x) / botH;
-    float rightBotStep = (bot.x - midAdj.x) / botH;
-	
-    float left = top.x;
-    float right = top.x;
+	float leftTopStep = (mid.x - top.x) / topH;
+	float rightTopStep = (midAdj.x - top.x) / topH;
+
+	float leftBotStep = (bot.x - mid.x) / botH;
+	float rightBotStep = (bot.x - midAdj.x) / botH;
+
+	float left = top.x;
+	float right = top.x;
 
 	for(int i = 0; i < topH; i++){
-        int startOfLine = left + (leftTopStep * i);
-        int endOfLine = right + (rightTopStep * i);
+		int startOfLine = left + (leftTopStep * i);
+		int endOfLine = right + (rightTopStep * i);
 		for(int j = startOfLine; j <= endOfLine; j++){
 			window.setPixelColour(j, top.y - i, col);
 		}
 	}
-    
-    left = mid.x;
-    right = midAdj.x;
 
-    for(int i = 0; i < botH; i++){
-        int startOfLine = left + (leftBotStep * i);
-        int endOfLine = right + (rightBotStep * i);
-        for(int j = startOfLine; j <= endOfLine; j++){
-            window.setPixelColour(j, mid.y - i, col);
-        }
-    }
+	left = mid.x;
+	right = midAdj.x;
+
+	for(int i = 0; i < botH; i++){
+		int startOfLine = left + (leftBotStep * i);
+		int endOfLine = right + (rightBotStep * i);
+		for(int j = startOfLine; j <= endOfLine; j++){
+			window.setPixelColour(j, mid.y - i, col);
+		}
+	}
 	window.setPixelColour(top.x, top.y, col);
 	window.setPixelColour(mid.x, mid.y, col);
 	window.setPixelColour(bot.x, bot.y, col);

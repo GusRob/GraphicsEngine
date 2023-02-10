@@ -34,8 +34,8 @@ void DrawingWindow::renderFrame() {
 
 void DrawingWindow::saveBMP(const std::string &filename) const {
 	auto surface = SDL_CreateRGBSurfaceFrom((void *) pixelBuffer.data(), width, height, 32,
-	                                        width * sizeof(uint32_t),
-	                                        0xFF << 16, 0xFF << 8, 0xFF << 0, 0xFF << 24);
+	width * sizeof(uint32_t),
+	0xFF << 16, 0xFF << 8, 0xFF << 0, 0xFF << 24);
 	SDL_SaveBMP(surface, filename.c_str());
 }
 
@@ -47,9 +47,9 @@ void DrawingWindow::savePPM(const std::string &filename) const {
 
 	for (size_t i = 0; i < width * height; i++) {
 		std::array<char, 3> rgb {{
-				static_cast<char> ((pixelBuffer[i] >> 16) & 0xFF),
-				static_cast<char> ((pixelBuffer[i] >> 8) & 0xFF),
-				static_cast<char> ((pixelBuffer[i] >> 0) & 0xFF)
+			static_cast<char> ((pixelBuffer[i] >> 16) & 0xFF),
+			static_cast<char> ((pixelBuffer[i] >> 8) & 0xFF),
+			static_cast<char> ((pixelBuffer[i] >> 0) & 0xFF)
 		}};
 		outputStream.write(rgb.data(), 3);
 	}
@@ -102,7 +102,7 @@ void DrawingWindow::drawText(const std::string &text, int imX, int imY, int imW,
 	// as TTF_RenderText_Solid could only be used on
 	// SDL_Surface then you have to create the surface first
 	SDL_Surface* surfaceMessage =
-	    TTF_RenderText_Solid(Sans, "A", White);
+	TTF_RenderText_Solid(Sans, "A", White);
 
 	// now you can convert it into a texture
 	SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
