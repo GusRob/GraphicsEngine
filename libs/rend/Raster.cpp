@@ -8,7 +8,7 @@ Vector getPointOnCanvas(Scene &scene, Vector p){
     camToPoint = scene.cameraAngle * camToPoint;
     float i = ( (camToPoint.x/camToPoint.z) + 1) * w.x/2;
     float j = ( (camToPoint.y/camToPoint.z) + 1) * w.y/2;
-    return Vector(i, j, camToPoint.z);
+    return Vector(i, j, -camToPoint.z);
 }
 
 //triangle drawing function
@@ -109,9 +109,13 @@ void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle tri){
             }
         }
     }
-	window.setPixelColour(top.x, top.y, col);
-	window.setPixelColour(mid.x, mid.y, col);
-	window.setPixelColour(bot.x, bot.y, col);
+    for(Vector v : {top, mid, bot}){
+        float d = 1/(v.z);
+        if(scene.depthBuf[v.x][v.y] <= d){
+            window.setPixelColour(v.x, v.y, col);
+            scene.depthBuf[v.x][v.y] = d;
+        }
+    }
 }
 /*
 void drawFilledTriangle(DrawingWindow &window, CanvasTriangle t, Colour col, float depthBuf[][HEIGHT]){

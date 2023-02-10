@@ -5,6 +5,7 @@
 #include "SceneObject.h"
 #include <vector>
 #include "Matrix.h"
+#include "DrawingWindow.h"
 
 struct Scene {
     Vector windowDim;
@@ -17,4 +18,8 @@ struct Scene {
 	Scene(int canvasWidth, int canvasHeight);
     void addObject(SceneObject obj);
     void resetBuf();
+    void lookAt(Vector target);
+    
+    
+    void rasterScene(DrawingWindow &window);
 };

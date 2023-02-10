@@ -52,7 +52,7 @@ speedy: $(SDW_OBJECT_FILES)
 # Rule for building all of the the DisplayWindow classes
 $(BUILD_DIR)/%.o: $(SDW_DIR)%.cpp
 	@mkdir -p $(BUILD_DIR)
-	$(COMPILER) $(COMPILER_OPTIONS) -c -o $@ $^ $(SDL_COMPILER_FLAGS)
+	$(COMPILER) $(COMPILER_OPTIONS) -c -o $@ $^ $(SDL_COMPILER_FLAGS) $(SDW_COMPILER_FLAGS) $(REND_COMPILER_FLAGS)
 
 # Rule for building all of the the rendering classes
 $(BUILD_DIR)/%.o: $(REND_DIR)%.cpp

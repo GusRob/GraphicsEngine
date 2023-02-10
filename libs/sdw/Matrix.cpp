@@ -24,6 +24,18 @@ Matrix::Matrix(float init[][3]){
     }
 }
 
+Matrix::Matrix(Vector p0, Vector p1, Vector p2){
+    data[0][0] = p0.x;
+    data[0][1] = p0.y;
+    data[0][2] = p0.z;
+    data[1][0] = p1.x;
+    data[1][1] = p1.y;
+    data[1][2] = p1.z;
+    data[2][0] = p2.x;
+    data[2][1] = p2.y;
+    data[2][2] = p2.z;
+}
+
 std::ostream &operator<<(std::ostream &os, const Matrix &m) {
 	os << "Matrix(("
 	   << m.data[0][0]
