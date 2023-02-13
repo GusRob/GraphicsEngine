@@ -59,6 +59,22 @@ Vector operator/(Vector p0, Vector p1){
   return Vector(p0.x/p1.x, p0.y/p1.y, p0.z/p1.z);
 }
 
+Vector operator-(Vector p, float v){
+  return Vector(p.x-v, p.y-v, p.z-v);
+}
+
+Vector operator+(Vector p, float v){
+  return Vector(p.x+v, p.y+v, p.z+v);
+}
+
+Vector operator*(Vector p, float v){
+  return Vector(p.x*v, p.y*v, p.z*v);
+}
+
+Vector operator/(Vector p, float v){
+  return Vector(p.x/v, p.y/v, p.z/v);
+}
+
 Vector operator-(Vector p){
   return Vector(-p.x, -p.y, -p.z);
 }

@@ -2,27 +2,34 @@
 
 #include "Draw.h"
 
+float distanceFromCenter( Vector centerMass, Vector rayOrigin, Vector rayDir) {
+  Vector originToCenter = centerMass - rayOrigin;
+  return size(cross(rayDir, originToCenter)) / size(rayDir);       // Perpendicular distance of point to segment.
+}
+
 std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector ray, Vector rayOrigin){
   Vector intersectionPoint = scene.camera + Vector(99999, 99999, 99999);
   Triangle *intersectionTriangle = new Triangle();
   bool intersected = false;
   float intersectionDistance = 99999;
   for(SceneObject *obj : scene.objects){
-    for(Triangle *tri : obj->triangles){
-  		Vector e0 = tri->p1 - tri->p0;
-  		Vector e1 = tri->p2 - tri->p0;
-  		Vector SPVector = rayOrigin - tri->p0;
-  		Matrix DEMatrix = transpose(Matrix(-ray, e0, e1));
-  		Vector tempSol = inverse(DEMatrix) * SPVector;
-  		float t = tempSol.x;
-  		float u = tempSol.y;
-  		float v = tempSol.z;
-  		if(intersectionDistance > t && t > 0.01 && (u >= 0.0) && (u <= 1.0) && (v >= 0.0) && (v <= 1.0) && (u + v) <= 1.0){
-        intersectionDistance = t;
-        intersectionPoint = tri->p0 + u*e0 + v*e1;
-  			intersectionTriangle = tri;
-        intersected = true;
-  		}
+    if(distanceFromCenter(obj->centerMass, rayOrigin, ray) < obj->collisionSphereRadius){
+      for(Triangle *tri : obj->triangles){
+    		Vector e0 = tri->p1 - tri->p0;
+    		Vector e1 = tri->p2 - tri->p0;
+    		Vector SPVector = rayOrigin - tri->p0;
+    		Matrix DEMatrix = transpose(Matrix(-ray, e0, e1));
+    		Vector tempSol = inverse(DEMatrix) * SPVector;
+    		float t = tempSol.x;
+    		float u = tempSol.y;
+    		float v = tempSol.z;
+    		if(intersectionDistance > t && t > 0.01 && (u >= 0.0) && (u <= 1.0) && (v >= 0.0) && (v <= 1.0) && (u + v) <= 1.0){
+          intersectionDistance = t;
+          intersectionPoint = tri->p0 + u*e0 + v*e1;
+    			intersectionTriangle = tri;
+          intersected = true;
+    		}
+      }
     }
 	}
   return std::make_tuple(intersected, intersectionPoint, intersectionTriangle);

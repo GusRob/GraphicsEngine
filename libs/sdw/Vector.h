@@ -21,6 +21,10 @@ Vector operator-(Vector p0, Vector p1);
 Vector operator+(Vector p0, Vector p1);
 Vector operator*(Vector p0, Vector p1);
 Vector operator/(Vector p0, Vector p1);
+Vector operator-(Vector p, float v);
+Vector operator+(Vector p, float v);
+Vector operator*(Vector p, float v);
+Vector operator/(Vector p, float v);
 Vector operator-(Vector p);
 
 Vector norm(Vector v);

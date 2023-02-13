@@ -274,8 +274,10 @@ int main(int argc, char *argv[]) {
 	std::vector<Material *> materials = mtlParser("assets/materials.mtl");
 	std::vector<SceneObject *> model = objParser("assets/cornell-box.obj", 1.5, materials, Vector(0, 0, 0));
 	for(SceneObject *obj : model){
+		obj->calcCollisionSphere();
 		scene.objects.push_back(obj);
 	}
+
 
 	while (true) {
 		handleMousePos();
