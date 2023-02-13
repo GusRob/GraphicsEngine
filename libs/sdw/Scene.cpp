@@ -12,7 +12,7 @@ Scene::Scene(int canvasWidth, int canvasHeight){
   }
 }
 
-void Scene::addObject(SceneObject obj){
+void Scene::addObject(SceneObject *obj){
   objects.push_back(obj);
 }
 
@@ -34,8 +34,8 @@ void Scene::lookAt(Vector target){
 
 void Scene::rasterScene(DrawingWindow &window){
   this->resetBuf();
-  for(SceneObject obj : objects){
-    for(Triangle tri : obj.triangles){
+  for(SceneObject *obj : objects){
+    for(Triangle *tri : obj->triangles){
       fill3DTriangle(window, *this, tri);
     }
   }

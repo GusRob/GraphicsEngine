@@ -12,21 +12,21 @@ Vector getPointOnCanvas(Scene &scene, Vector p){
 }
 
 //triangle drawing function
-void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle tri){
-  Vector p0 = getPointOnCanvas(scene, tri.p0);
-  Vector p1 = getPointOnCanvas(scene, tri.p1);
-  Vector p2 = getPointOnCanvas(scene, tri.p2);
-  drawLine(window, p0, p1, tri.col);
-  drawLine(window, p1, p2, tri.col);
-  drawLine(window, p2, p0, tri.col);
+void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+  Vector p0 = getPointOnCanvas(scene, tri->p0);
+  Vector p1 = getPointOnCanvas(scene, tri->p1);
+  Vector p2 = getPointOnCanvas(scene, tri->p2);
+  drawLine(window, p0, p1, tri->mat->col);
+  drawLine(window, p1, p2, tri->mat->col);
+  drawLine(window, p2, p0, tri->mat->col);
 }
 
 //triangle drawing function
-void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle tri){
-  uint32_t col = packCol(tri.col);
-  Vector top = getPointOnCanvas(scene, tri.p0);
-  Vector mid = getPointOnCanvas(scene, tri.p1);
-  Vector bot = getPointOnCanvas(scene, tri.p2);
+void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+  uint32_t col = packCol(tri->mat->col);
+  Vector top = getPointOnCanvas(scene, tri->p0);
+  Vector mid = getPointOnCanvas(scene, tri->p1);
+  Vector bot = getPointOnCanvas(scene, tri->p2);
   if(bot.y > mid.y){
     std::swap(bot, mid);
   }

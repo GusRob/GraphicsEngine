@@ -5,8 +5,8 @@
 #include <Scene.h>
 #include <tuple>
 
-std::tuple<bool, Vector, Triangle> getClosestPointOnRay(Scene &scene, Vector ray);
+std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector ray, Vector rayOrigin);
 
-Colour getColourOfTriAtPoint(Vector p, Triangle tri);
+uint32_t getColourOfTriAtPoint(Vector p, Triangle *tri);
 
 void drawRayTrace(DrawingWindow &window, Scene &scene, Vector pixel);

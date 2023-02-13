@@ -41,14 +41,14 @@ void drawLine(DrawingWindow &window, Vector p0, Vector p1, Colour colour){
 
 //triangle drawing function
 void drawTriangle(DrawingWindow &window, Triangle tri){
-	drawLine(window, tri.p0, tri.p1, tri.col);
-	drawLine(window, tri.p1, tri.p2, tri.col);
-	drawLine(window, tri.p2, tri.p0, tri.col);
+	drawLine(window, tri.p0, tri.p1, tri.mat->col);
+	drawLine(window, tri.p1, tri.p2, tri.mat->col);
+	drawLine(window, tri.p2, tri.p0, tri.mat->col);
 }
 
 //triangle filling function
 void fillTriangle(DrawingWindow &window, Triangle tri){
-	uint32_t col = packCol(tri.col);
+	uint32_t col = packCol(tri.mat->col);
 	Vector top = tri.p0;
 	Vector mid = tri.p1;
 	Vector bot = tri.p2;

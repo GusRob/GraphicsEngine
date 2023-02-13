@@ -25,3 +25,6 @@ bump maps
 Extension features not included in last project:
 photon mapping
 ...?
+
+
+**Note** the mtl obj and mtl files were handwritten by me, they don't necessarily follow the proper file specifications and syntax, but functionally act the same

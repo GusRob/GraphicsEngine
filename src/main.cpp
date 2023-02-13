@@ -2,6 +2,7 @@
 #include <Colour.h>
 #include <Triangle.h>
 #include <Vector.h>
+#include <Material.h>
 #include <Scene.h>
 
 #include <Draw.h>
@@ -45,7 +46,8 @@ void draw(DrawingWindow &window) {
 	scene.camera = rotateY * scene.camera;
 	*/
 	scene.camera = Vector(0, 0, 10);
-	scene.lookAt(Vector(0, 0, 0));
+	Vector origin = Vector(0, 0, 0);
+	scene.lookAt(origin);
 
 	if(frameCount%100 == 0){
 		scene.raytraceScene(window);
@@ -75,31 +77,37 @@ void handleMousePos(){
 // OBJ/MTL PARSER //
 ////////////////////
 
-std::vector<Colour> mtlParser(std::string mtlFilepath){
-	std::vector<Colour> cols;
+std::vector<Material *> mtlParser(std::string mtlFilepath){
+	std::vector<Material *> materials;
 	std::ifstream ifs (mtlFilepath, std::ifstream::in);
 	char c = ifs.get();
 	std::string currentWord = "";
-	int mode = 0; // mode 0, reading headers, mode 1 - name of colour, mode 2,3,4 - colour itself
+	int mode = 0; // mode 0, reading headers, mode 1 - name of colour, mode 2,3,4 - colour itself, mode 5,6,7,8 - texturemaps
 	Colour currentCol = Colour(-1, -1, -1);
+	Texture currentTex = Texture();
 	while(ifs.good()){
 		if(c == '\n' || c == ' '){
 			if(mode == 0){
 				if(currentWord == "newmtl"){
 					mode = 1;
-				} else if(currentWord == "Kd"){
+				} else if(currentWord == "diffuse"){
 					mode = 2;
+				} else if(currentWord == "diffuseMap"){
+					mode = 5;
 				} else {
 					//std::cout << "err: " << currentWord << std::endl;
 				}
 			} else if(mode == 1){
 				if(currentCol.red != -1){
-					cols.push_back(currentCol);
+					Material *m = (Material *)malloc(sizeof(Material));
+					m = new Material(currentCol, currentTex);
+					materials.push_back(m);
 				}
+				currentTex = Texture();
 				currentCol = Colour(-1, -1, -1);
 				currentCol.name = currentWord;
 				mode = 0;
-			} else {
+			} else if(mode < 5) {
 				if(mode == 2){
 					currentCol.red = round(std::stof(currentWord)*255);
 					mode++;
@@ -111,6 +119,11 @@ std::vector<Colour> mtlParser(std::string mtlFilepath){
 					mode = 0;
 					c = ifs.get();
 				}
+			} else {
+				if(mode == 5){
+					currentTex.addDiffuseMap(currentWord);
+					mode = 0;
+				}
 			}
 			currentWord = "";
 		} else {
@@ -118,12 +131,14 @@ std::vector<Colour> mtlParser(std::string mtlFilepath){
 		}
 		c = ifs.get();
 	}
-	cols.push_back(currentCol);
+	Material *m = (Material *)malloc(sizeof(Material));
+	m = new Material(currentCol, currentTex);
+	materials.push_back(m);
 	ifs.close();
-	return cols;
+	return materials;
 }
 
-void objParser(std::vector<Triangle> &dest, std::string objFilepath, float scale, std::vector<Colour> materials, Vector translation){
+void objParser(std::vector<Triangle *> &dest, std::string objFilepath, float scale, std::vector<Material *> materials, Vector translation){
 	std::vector<std::vector<float>> vs;
 	std::vector<std::vector<float>> vts;
 	std::vector<std::vector<float>> vns;
@@ -225,7 +240,8 @@ void objParser(std::vector<Triangle> &dest, std::string objFilepath, float scale
 					}
 					toAdd.push_back(addition);
 				}
-				Triangle newTri = Triangle( Vector(vs[toAdd[0][0]])+translation, Vector(vs[toAdd[1][0]]) + translation, Vector(vs[toAdd[2][0]]) + translation, materials[currentMat]);
+				Triangle *newTri = (Triangle *)malloc(sizeof(Triangle));
+				newTri = new Triangle( Vector(vs[toAdd[0][0]])+translation, Vector(vs[toAdd[1][0]]) + translation, Vector(vs[toAdd[2][0]]) + translation, materials[currentMat]);
 				dest.push_back(newTri);
 			} else if(target == 'u'){
 				c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();
@@ -235,7 +251,7 @@ void objParser(std::vector<Triangle> &dest, std::string objFilepath, float scale
 					c = ifs.get();
 				}
 				for(int a = 0; a < materials.size(); a++){
-					if(materials[a].name == currentNum){
+					if(materials[a]->col.name == currentNum){
 						currentMat = a;
 					}
 				}
@@ -256,10 +272,10 @@ int main(int argc, char *argv[]) {
 	DrawingWindow window = DrawingWindow(WIDTH, HEIGHT, false);
 	SDL_Event event;
 
-	std::vector<Colour> cols = mtlParser("assets/materials.mtl");
-	std::vector<Triangle> model;
-	objParser(model, "assets/cornell-box.obj", 1, cols, Vector(0, 0, 0));
-	scene.objects.push_back(SceneObject(model));
+	std::vector<Material *> materials = mtlParser("assets/materials.mtl");
+	std::vector<Triangle *> model;
+	objParser(model, "assets/cornell-box.obj", 1.5, materials, Vector(0, 0, 0));
+	scene.objects.push_back(new SceneObject(model));
 
 	while (true) {
 		handleMousePos();
@@ -273,5 +289,17 @@ int main(int argc, char *argv[]) {
 		draw(window);
 		window.renderFrame();
 		frameCount+=1;
+		if(frameCount >= 150){
+			break;
+		}
+	}
+	for(SceneObject *obj : scene.objects){
+		for(Triangle *tri : obj->triangles){
+			free(tri);
+		}
+		free(obj);
+	}
+	for(Material * mat : materials){
+		free(mat);
 	}
 }

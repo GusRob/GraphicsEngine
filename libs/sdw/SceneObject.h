@@ -5,7 +5,7 @@
 #include <vector>
 
 struct SceneObject {
-	std::vector<Triangle> triangles;
+	std::vector<Triangle *> triangles;
 	SceneObject();
-	SceneObject(std::vector<Triangle> tris_init);
+	SceneObject(std::vector<Triangle *> tris_init);
 };
