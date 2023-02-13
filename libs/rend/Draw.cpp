@@ -3,6 +3,13 @@
 #include "Raster.h"
 
 uint32_t packCol(Colour col){ return (255 << 24) + (int(col.red) << 16) + (int(col.green) << 8) + int(col.blue); }
+Colour unpackCol(uint32_t col){
+	Colour result;
+	result.red = (uint8_t) ((col >> 16) & 0xFF);
+	result.green = (uint8_t) ((col >> 8) & 0xFF);
+	result.blue = (uint8_t) ((col) & 0xFF);
+	return result;
+}
 
 //linear interpolation function used for rasterising
 std::vector<float> linearInterpolation(float start, float end, int count){

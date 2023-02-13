@@ -12,8 +12,8 @@ std::ostream &operator<<(std::ostream &os, const Texture &t){
 }
 
 Texture::Texture(){
-  width = -1;
-  height = -1;
+  width = 0;
+  height = 0;
 }
 
 Texture::Texture(std::string filepath_init){

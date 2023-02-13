@@ -6,6 +6,7 @@
 #include <Colour.h>
 
 uint32_t packCol(Colour col);
+Colour unpackCol(uint32_t col);
 
 std::vector<float> linearInterpolation(float start, float end, int count);
 

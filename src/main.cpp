@@ -49,7 +49,7 @@ void draw(DrawingWindow &window) {
 	Vector origin = Vector(0, 0, 0);
 	scene.lookAt(origin);
 
-	if(frameCount%100 == 0){
+	if(frameCount %100 == 0){
 		scene.raytraceScene(window);
 	} else {
 		scene.rasterScene(window);
@@ -83,8 +83,9 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 	char c = ifs.get();
 	std::string currentWord = "";
 	int mode = 0; // mode 0, reading headers, mode 1 - name of colour, mode 2,3,4 - colour itself, mode 5,6,7,8 - texturemaps
-	Colour currentCol = Colour(-1, -1, -1);
+	Colour currentCol = Colour();
 	Texture currentTex = Texture();
+	bool firstMat = false;
 	while(ifs.good()){
 		if(c == '\n' || c == ' '){
 			if(mode == 0){
@@ -98,13 +99,14 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 					//std::cout << "err: " << currentWord << std::endl;
 				}
 			} else if(mode == 1){
-				if(currentCol.red != -1){
+				if(firstMat){
 					Material *m = (Material *)malloc(sizeof(Material));
-					m = new Material(currentCol, currentTex);
+					m = new Material(currentCol.name, currentCol, currentTex);
 					materials.push_back(m);
 				}
+				firstMat = true;
+				currentCol = Colour();
 				currentTex = Texture();
-				currentCol = Colour(-1, -1, -1);
 				currentCol.name = currentWord;
 				mode = 0;
 			} else if(mode < 5) {
@@ -117,7 +119,6 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 				} else if(mode == 4){
 					currentCol.blue = round(std::stof(currentWord)*255);
 					mode = 0;
-					c = ifs.get();
 				}
 			} else {
 				if(mode == 5){
@@ -132,133 +133,131 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 		c = ifs.get();
 	}
 	Material *m = (Material *)malloc(sizeof(Material));
-	m = new Material(currentCol, currentTex);
+	m = new Material(currentCol.name, currentCol, currentTex);
 	materials.push_back(m);
 	ifs.close();
 	return materials;
 }
 
-void objParser(std::vector<Triangle *> &dest, std::string objFilepath, float scale, std::vector<Material *> materials, Vector translation){
-	std::vector<std::vector<float>> vs;
-	std::vector<std::vector<float>> vts;
-	std::vector<std::vector<float>> vns;
-	std::vector<std::vector<float>> vbs;
+std::vector<SceneObject *> objParser(std::string objFilepath, float scale, std::vector<Material *> materials, Vector translation){
+	std::vector<SceneObject *> objects;
+	std::vector<Vector> vertices;
+	std::vector<Vector> textureVertices;
 	std::ifstream ifs (objFilepath, std::ifstream::in);
-	char c = '\n';
-	char firstLetterOfLine = c;
-	char target = ' ';
-	int currentMat = 0;
-
+	char c = ifs.get();
+	std::string currentWord = "";
+	int mode = 0; // mode 0, reading headers, mode 1 - name of object, mode 2 - name of material, mode 3,4,5 - vertex points, mode 6,7,8 - face points, mode 9,10 - texturevertex
+	std::string currentName = "";
+	Material *currentMaterial = materials[0];
+	std::vector<Triangle *> currentFaces = std::vector<Triangle *>();
+	int currIndex = 0;
+	bool firstObj = false;
 	while(ifs.good()){
-		if(c == '\n'){
-			c = ifs.get();
-			firstLetterOfLine = c;
-			while(firstLetterOfLine == '#'){
-				while(c != '\n'){
-					c = ifs.get();
-				}
-				firstLetterOfLine = c;
-			}
-			if(firstLetterOfLine == 'v' || firstLetterOfLine == 'f' || firstLetterOfLine == 'u'){
-				target = firstLetterOfLine;
-			} else { target = ' '; }
-			c = ifs.get();
-		} else {
-			if(target == 'v'){
-				if(c == 'n'){
-					std::vector<float> toAdd;
-					c = ifs.get();
-					for(int i = 0; i < 3; i++){
-						c = ifs.get();
-						std::string currentNum = "";
-						while(c != ' ' && c != '\n'){
-							currentNum = currentNum.append(1, c);
-							c = ifs.get();
-						}
-						toAdd.push_back(std::stof(currentNum));
-					}
-					vns.push_back(toAdd);
-				} else if(c == 't'){
-					std::vector<float> toAdd;
-					c = ifs.get();
-					for(int i = 0; i < 2; i++){
-						c = ifs.get();
-						std::string currentNum = "";
-						while(c != ' ' && c != '\n'){
-							currentNum = currentNum.append(1, c);
-							c = ifs.get();
-						}
-						toAdd.push_back(std::stof(currentNum));
-					}
-					vts.push_back(toAdd);
-				} else if(c == 'b'){
-					std::vector<float> toAdd;
-					c = ifs.get();
-					for(int i = 0; i < 2; i++){
-						c = ifs.get();
-						std::string currentNum = "";
-						while(c != ' ' && c != '\n'){
-							currentNum = currentNum.append(1, c);
-							c = ifs.get();
-						}
-						toAdd.push_back(std::stof(currentNum));
-					}
-					vts.push_back(toAdd);
+		if(c == '\n' || c == ' '){
+			if(mode == 0){
+				if(currentWord == "o"){
+					mode = 1;
+				} else if(currentWord == "usemtl"){
+					mode = 2;
+				} else if(currentWord == "vertex"){
+					mode = 3;
+				} else if(currentWord == "face"){
+					mode = 6;
+				} else if(currentWord == "texture"){
+					mode = 9;
 				} else {
-					std::vector<float> toAdd;
-					for(int i = 0; i < 3; i++){
-						c = ifs.get();
-						std::string currentNum = "";
-						while(c != ' ' && c != '\n'){
-							currentNum = currentNum.append(1, c);
-							c = ifs.get();
-						}
-						toAdd.push_back(std::stof(currentNum)*scale);
-					}
-					vs.push_back(toAdd);
+					//std::cout << "err: " << currentWord << std::endl;
 				}
-			} else if(target == 'f'){
-				std::vector<std::vector<int>> toAdd;
-				for(int i = 0; i < 3; i++){
-					std::vector<int> addition;
-					c = ifs.get();
-					std::string currentNum = "";
-					while(c != ' ' && c != '\n' && ifs.good()){
-						if(c == '/'){
-							if(currentNum == ""){currentNum = "0";}
-							addition.push_back(std::stoi(currentNum)-1);
-							currentNum = "";
-						} else {
-							currentNum = currentNum.append(1, c);
-						}
-						c = ifs.get();
-					}
-					while(addition.size() < 4){
-						if(currentNum == ""){currentNum = "0";}
-						addition.push_back(std::stoi(currentNum)-1);
-						currentNum = "";
-					}
-					toAdd.push_back(addition);
+			} else if(mode == 1){
+				if(firstObj){
+
+					SceneObject *object= (SceneObject *)malloc(sizeof(SceneObject));
+					object = new SceneObject(currentFaces);
+					object->name = currentName;
+					object->material = currentMaterial;
+					objects.push_back(object);
 				}
-				Triangle *newTri = (Triangle *)malloc(sizeof(Triangle));
-				newTri = new Triangle( Vector(vs[toAdd[0][0]])+translation, Vector(vs[toAdd[1][0]]) + translation, Vector(vs[toAdd[2][0]]) + translation, materials[currentMat]);
-				dest.push_back(newTri);
-			} else if(target == 'u'){
-				c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();c = ifs.get();
-				std::string currentNum = "";
-				while(c != '\n'){
-					currentNum = currentNum.append(1, c);
-					c = ifs.get();
-				}
-				for(int a = 0; a < materials.size(); a++){
-					if(materials[a]->col.name == currentNum){
-						currentMat = a;
+				firstObj = true;
+				currentName = "";
+				currentMaterial = materials[0];
+				currentFaces = std::vector<Triangle *>();
+				currentName = currentWord;
+				mode = 0;
+			} else if(mode == 2) {
+				for(Material *mat : materials){
+					if(currentWord == (mat->name)){
+						currentMaterial = mat;
+						break;
 					}
 				}
-			} else { c = ifs.get(); }
+				mode = 0;
+			} else if(mode < 6) {
+				if(mode == 3){
+					vertices.push_back(Vector());
+					currIndex = vertices.size()-1;
+					vertices[currIndex].x = (std::stof(currentWord))*scale;
+					mode++;
+				} else if(mode == 4){
+					vertices[currIndex].y = (std::stof(currentWord))*scale;
+					mode++;
+				} else if(mode == 5){
+					vertices[currIndex].z = (std::stof(currentWord))*scale;
+					mode = 0;
+				}
+			} else if(mode < 9){
+				if(mode == 6){
+					Triangle *tri= (Triangle *)malloc(sizeof(Triangle));
+					tri = new Triangle();
+					tri->mat = currentMaterial;
+
+					currentFaces.push_back(tri);
+					currIndex = currentFaces.size() - 1;
+
+					int slashIndex = currentWord.find('/');
+					currentFaces[currIndex]->p0 = vertices[std::stoi(currentWord.substr(0, slashIndex))-1];
+					if(slashIndex < currentWord.size()-1){
+						currentFaces[currIndex]->t0 = textureVertices[std::stoi(currentWord.substr(slashIndex+1))-1];
+					}
+					mode++;
+				} else if(mode == 7){
+					int slashIndex = currentWord.find('/');
+					currentFaces[currIndex]->p1 = vertices[std::stoi(currentWord.substr(0, slashIndex))-1];
+					if(slashIndex < currentWord.size()-1){
+						currentFaces[currIndex]->t1 = textureVertices[std::stoi(currentWord.substr(slashIndex+1))-1];
+					}
+					mode++;
+				} else if(mode == 8){
+					int slashIndex = currentWord.find('/');
+					currentFaces[currIndex]->p2 = vertices[std::stoi(currentWord.substr(0, slashIndex))-1];
+					if(slashIndex < currentWord.size()-1){
+						currentFaces[currIndex]->t2 = textureVertices[std::stoi(currentWord.substr(slashIndex+1))-1];
+					}
+					mode = 0;
+				}
+			} else {
+				if(mode == 9){
+					textureVertices.push_back(Vector());
+					currIndex = textureVertices.size()-1;
+					textureVertices[currIndex].x = (std::stof(currentWord));
+					mode++;
+				} else if(mode == 10){
+					textureVertices[currIndex].y = (std::stof(currentWord));
+					mode = 0;
+				}
+			}
+			currentWord = "";
+		} else {
+			currentWord.append(1, c);
 		}
+		c = ifs.get();
 	}
+	SceneObject *object= (SceneObject *)malloc(sizeof(SceneObject));
+	object = new SceneObject(currentFaces);
+	object->name = currentName;
+	object->material = currentMaterial;
+	objects.push_back(object);
 	ifs.close();
+	return objects;
 }
 
 ///////////////
@@ -273,9 +272,10 @@ int main(int argc, char *argv[]) {
 	SDL_Event event;
 
 	std::vector<Material *> materials = mtlParser("assets/materials.mtl");
-	std::vector<Triangle *> model;
-	objParser(model, "assets/cornell-box.obj", 1.5, materials, Vector(0, 0, 0));
-	scene.objects.push_back(new SceneObject(model));
+	std::vector<SceneObject *> model = objParser("assets/cornell-box.obj", 1.5, materials, Vector(0, 0, 0));
+	for(SceneObject *obj : model){
+		scene.objects.push_back(obj);
+	}
 
 	while (true) {
 		handleMousePos();
