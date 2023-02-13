@@ -6,6 +6,7 @@ std::tuple<bool, Vector, Triangle> getClosestPointOnRay(Scene &scene, Vector ray
   Vector intersectionPoint = scene.camera + Vector(99999, 99999, 99999);
   Triangle intersectionTriangle = Triangle();
   bool intersected = false;
+  float intersectionDistance = 99999;
   for(SceneObject obj : scene.objects){
     for(Triangle tri : obj.triangles){
   		Vector e0 = tri.p1 - tri.p0;
@@ -16,12 +17,8 @@ std::tuple<bool, Vector, Triangle> getClosestPointOnRay(Scene &scene, Vector ray
   		float t = tempSol.x;
   		float u = tempSol.y;
   		float v = tempSol.z;
-  		if(size(intersectionPoint-rayOrigin) > t && t > 0.01 && (u >= 0.0) && (u <= 1.0) && (v >= 0.0) && (v <= 1.0) && (u + v) <= 1.0){
-        if(intersectionTriangle.col.name == "White"){
-          std::cout << size(intersectionPoint-scene.camera) << std::endl;
-          std::cout << tri.col.name <<  t << std::endl;
-          std::cout << std::endl;
-        }
+  		if(intersectionDistance > t && t > 0.01 && (u >= 0.0) && (u <= 1.0) && (v >= 0.0) && (v <= 1.0) && (u + v) <= 1.0){
+        intersectionDistance = t;
         intersectionPoint = tri.p0 + u*e0 + v*e1;
   			intersectionTriangle = tri;
         intersected = true;
@@ -44,6 +41,7 @@ void drawRayTrace(DrawingWindow &window, Scene &scene, Vector pixel){
   Vector intersectionPoint = std::get<1>(pointAndTriangle);
   Triangle intersectionTriangle = std::get<2>(pointAndTriangle);
   if(intersected){
-    window.setPixelColour(pixel.x, pixel.y, packCol(intersectionTriangle.col));
+    Colour col = getColourOfTriAtPoint(intersectionPoint, intersectionTriangle);
+    window.setPixelColour(pixel.x, pixel.y, packCol(col));
   }
 }

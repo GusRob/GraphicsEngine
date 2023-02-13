@@ -52,7 +52,7 @@ void Scene::raytraceScene(DrawingWindow &window){
   int i = 0;
   for(Vector pixel : pixels){
     drawRayTrace(window, *this, pixel);
-    if(i++ % 500 == 0){
+    if(i++ % 5000 == 0){
       window.renderFrame();
     }
   }
