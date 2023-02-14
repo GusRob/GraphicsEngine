@@ -5,13 +5,15 @@
 #include "SceneObject.h"
 #include <vector>
 #include "Matrix.h"
+#include "Light.h"
 #include "DrawingWindow.h"
 
 struct Scene {
   Vector windowDim;
   Vector camera = Vector(0, 0, -10);
   Matrix cameraAngle = Matrix(1);
-	std::vector<SceneObject *> objects;
+  std::vector<SceneObject *> objects;
+  std::vector<Light *> lights;
 
   std::vector<std::vector<float>> depthBuf;
 
@@ -22,5 +24,5 @@ struct Scene {
 
 
   void rasterScene(DrawingWindow &window);
-  void raytraceScene(DrawingWindow &window);
+  void raytraceScene(DrawingWindow &window, bool progress);
 };

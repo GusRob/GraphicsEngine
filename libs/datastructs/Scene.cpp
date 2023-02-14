@@ -41,7 +41,7 @@ void Scene::rasterScene(DrawingWindow &window){
   }
 }
 
-void Scene::raytraceScene(DrawingWindow &window){
+void Scene::raytraceScene(DrawingWindow &window, bool progress){
   std::vector<Vector> pixels;
   for(float i = 0; i < windowDim.x; i++){
     for(float j = 0; j < windowDim.y; j++){
@@ -52,7 +52,7 @@ void Scene::raytraceScene(DrawingWindow &window){
   int i = 0;
   for(Vector pixel : pixels){
     drawRayTrace(window, *this, pixel);
-    if(i++ % 5000 == 0){
+    if(progress && (i++ % 5000 == 0)){
       window.renderFrame();
     }
   }

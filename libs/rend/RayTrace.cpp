@@ -13,7 +13,7 @@ std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector r
   bool intersected = false;
   float intersectionDistance = 99999;
   for(SceneObject *obj : scene.objects){
-    if(distanceFromCenter(obj->centerMass, rayOrigin, ray) < obj->collisionSphereRadius){
+    if(distanceFromCenter(obj->centerMass, rayOrigin, ray) <= obj->collisionSphereRadius){
       for(Triangle *tri : obj->triangles){
     		Vector e0 = tri->p1 - tri->p0;
     		Vector e1 = tri->p2 - tri->p0;
@@ -35,45 +35,53 @@ std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector r
   return std::make_tuple(intersected, intersectionPoint, intersectionTriangle);
 }
 
-uint32_t getColourOfTriAtPoint(Vector p, Triangle *tri){
+Colour interpTexture(Vector p, Triangle *tri){
+  float AOV0 = size(cross(p-tri->p1, tri->p2-tri->p1))/2; //calculate areas of subtriangles
+  float AOV1 = size(cross(p-tri->p2, tri->p0-tri->p2))/2;
+  float AOV2 = size(cross(p-tri->p0, tri->p1-tri->p0))/2;
+  float totalA = AOV0 + AOV1 + AOV2;	//proportional areas instead of absolute areas
+  AOV0 = AOV0 / totalA;
+  AOV1 = AOV1 / totalA;
+  AOV2 = AOV2 / totalA;
+
+  float texPropX = (AOV0*tri->t0.x + AOV1*tri->t1.x + AOV2*tri->t2.x);
+  float texPropY = (AOV0*tri->t0.y + AOV1*tri->t1.y + AOV2*tri->t2.y);
+  texPropX = (texPropX >= 1) ? texPropX-(float)floor(texPropX) : ((texPropX <= -1) ? texPropX-(float)ceil(texPropX) : texPropX);
+  texPropY = (texPropY >= 1) ? texPropY-(float)floor(texPropY) : ((texPropY <= -1) ? texPropY-(float)ceil(texPropY) : texPropY);
+
+  float textureX = (texPropX)*tri->mat->texture.width;
+  float textureY = (texPropY)*tri->mat->texture.height;
+  float floorX = (float)floor(textureX);
+  float floorY = (float)floor(textureY);
+  float ceilX = floorX + 1;
+  float ceilY = floorY + 1;
+
+  Colour q11 = unpackCol(tri->mat->texture.diffuseMap[floorY*tri->mat->texture.width + floorX]);
+  Colour q12 = unpackCol(tri->mat->texture.diffuseMap[ceilY*tri->mat->texture.width + floorX]);
+  Colour q21 = unpackCol(tri->mat->texture.diffuseMap[floorY*tri->mat->texture.width + ceilX]);
+  Colour q22 = unpackCol(tri->mat->texture.diffuseMap[ceilY*tri->mat->texture.width + ceilX]);
+  float x2x1 = ceilX - floorX;
+  float y2y1 = ceilY - floorY;
+  float x2x = ceilX - textureX;
+  float y2y = ceilY - textureY;
+  float yy1 = textureY - floorY;
+  float xx1 = textureX - floorX;
+  Colour col;
+  col.red = 1.0 / (x2x1 * y2y1) * ( (q11.red * x2x * y2y) + (q21.red * xx1 * y2y) + (q12.red * x2x * yy1) + (q22.red * xx1 * yy1) );
+  col.green = 1.0 / (x2x1 * y2y1) * ( (q11.green * x2x * y2y) + (q21.green * xx1 * y2y) + (q12.green * x2x * yy1) + (q22.green * xx1 * yy1) );
+  col.blue = 1.0 / (x2x1 * y2y1) * ( (q11.blue * x2x * y2y) + (q21.blue * xx1 * y2y) + (q12.blue * x2x * yy1) + (q22.blue * xx1 * yy1) );
+  return (col);
+}
+
+uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector fromDir){
+  Colour diffuseCol;
   if(tri->mat->textureSet){
-
-    float AOV0 = size(cross(p-tri->p1, tri->p2-tri->p1))/2; //calculate areas of subtriangles
-    float AOV1 = size(cross(p-tri->p2, tri->p0-tri->p2))/2;
-    float AOV2 = size(cross(p-tri->p0, tri->p1-tri->p0))/2;
-    float totalA = AOV0 + AOV1 + AOV2;	//proportional areas instead of absolute areas
-    AOV0 = AOV0 / totalA;
-    AOV1 = AOV1 / totalA;
-    AOV2 = AOV2 / totalA;
-
-    float textureX = (AOV0*tri->t0.x + AOV1*tri->t1.x + AOV2*tri->t2.x)*tri->mat->texture.width;
-    float textureY = (AOV0*tri->t0.y + AOV1*tri->t1.y + AOV2*tri->t2.y)*tri->mat->texture.height;
-
-    float floorX = (float)floor(textureX);
-    float floorY = (float)floor(textureY);
-    float ceilX = (float)ceil(textureX);
-    float ceilY = (float)ceil(textureY);
-    Colour q11 = unpackCol(tri->mat->texture.diffuseMap[floorY*tri->mat->texture.width + floorX]);
-    Colour q12 = unpackCol(tri->mat->texture.diffuseMap[ceilY*tri->mat->texture.width + floorX]);
-    Colour q21 = unpackCol(tri->mat->texture.diffuseMap[floorY*tri->mat->texture.width + ceilX]);
-    Colour q22 = unpackCol(tri->mat->texture.diffuseMap[ceilY*tri->mat->texture.width + ceilX]);
-    float x2x1 = ceilX - floorX;
-    float y2y1 = ceilY - floorY;
-    float x2x = ceilX - textureX;
-    float y2y = ceilY - textureY;
-    float yy1 = textureY - floorY;
-    float xx1 = textureX - floorX;
-    Colour col;
-    col.red = 1.0 / (x2x1 * y2y1) * ( (q11.red * x2x * y2y) + (q21.red * xx1 * y2y) + (q12.red * x2x * yy1) + (q22.red * xx1 * yy1) );
-    col.green = 1.0 / (x2x1 * y2y1) * ( (q11.green * x2x * y2y) + (q21.green * xx1 * y2y) + (q12.green * x2x * yy1) + (q22.green * xx1 * yy1) );
-    col.blue = 1.0 / (x2x1 * y2y1) * ( (q11.blue * x2x * y2y) + (q21.blue * xx1 * y2y) + (q12.blue * x2x * yy1) + (q22.blue * xx1 * yy1) );
-
-    //Colour col = unpackCol(texture.pixels[round(textureY)*texture.width + round(textureX)]);
-    return packCol(col);
-
+    diffuseCol = interpTexture(p, tri);
   } else {
-    return packCol(tri->mat->col);
+    diffuseCol = (tri->mat->col);
   }
+
+  return packCol(diffuseCol);
 }
 
 void drawRayTrace(DrawingWindow &window, Scene &scene, Vector pixel){
@@ -85,7 +93,9 @@ void drawRayTrace(DrawingWindow &window, Scene &scene, Vector pixel){
   Vector intersectionPoint = std::get<1>(pointAndTriangle);
   Triangle *intersectionTriangle = std::get<2>(pointAndTriangle);
   if(intersected){
-    uint32_t col = getColourOfTriAtPoint(intersectionPoint, intersectionTriangle);
+    uint32_t col = getColourAtPoint(scene, intersectionPoint, intersectionTriangle, scene.camera);
     window.setPixelColour(pixel.x, pixel.y, col);
+  } else {
+    std::cout << pixel << std::endl;
   }
 }

@@ -7,6 +7,10 @@
 
 std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector ray, Vector rayOrigin);
 
-uint32_t getColourOfTriAtPoint(Vector p, Triangle *tri);
+Colour interpTexture(Vector p, Triangle *tri);
+
+bool canSeePoint(Scene &scene, Vector origin, Vector target);
+
+uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector fromDir);
 
 void drawRayTrace(DrawingWindow &window, Scene &scene, Vector pixel);

@@ -10,6 +10,20 @@ Colour unpackCol(uint32_t col){
 	result.blue = (uint8_t) ((col) & 0xFF);
 	return result;
 }
+Colour dimCol(Colour col, float dimness){
+	Colour result;
+	result.red = col.red*dimness;
+	result.green = col.green*dimness;
+	result.blue = col.blue*dimness;
+	return result;
+}
+Vector unpackColToVec(uint32_t col){
+	Vector result;
+	result.x = (float) ((col >> 16) & 0xFF);
+	result.y = (float) ((col >> 8) & 0xFF);
+	result.z = (float) ((col) & 0xFF);
+	return result;
+}
 
 //linear interpolation function used for rasterising
 std::vector<float> linearInterpolation(float start, float end, int count){

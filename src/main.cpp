@@ -34,7 +34,6 @@ Scene scene = Scene(WIDTH, HEIGHT);
 void draw(DrawingWindow &window) {
 	window.clearPixels();
 	scene.resetBuf();
-
 /*
 	float cos10 = cos(0.01);
 	float sin10 = sin(0.01);
@@ -45,15 +44,11 @@ void draw(DrawingWindow &window) {
 
 	scene.camera = rotateY * scene.camera;
 	*/
-	scene.camera = Vector(0, 0, 10);
+	scene.camera = Vector(0, 0, 20);
 	Vector origin = Vector(0, 0, 0);
 	scene.lookAt(origin);
 
-	if(frameCount %100 == 0){
-		scene.raytraceScene(window);
-	} else {
-		scene.rasterScene(window);
-	}
+	scene.raytraceScene(window, frameCount == 0);
 }
 
 ////////////////////
@@ -271,13 +266,18 @@ int main(int argc, char *argv[]) {
 	DrawingWindow window = DrawingWindow(WIDTH, HEIGHT, false);
 	SDL_Event event;
 
-	std::vector<Material *> materials = mtlParser("assets/materials.mtl");
-	std::vector<SceneObject *> model = objParser("assets/cornell-box.obj", 1.5, materials, Vector(0, 0, 0));
+	std::vector<Material *> materials = mtlParser("assets/medievalDiningRoom/materials.mtl");
+	std::vector<SceneObject *> model = objParser("assets/medievalDiningRoom/room.obj", 2, materials, Vector(0, 0, 0));
+	//std::vector<Material *> materials = mtlParser("assets/basicCornell/materials.mtl");
+	//std::vector<SceneObject *> model = objParser("assets/basicCornell/cornell-box.obj", 5, materials, Vector(0, 0, 0));
 	for(SceneObject *obj : model){
 		obj->calcCollisionSphere();
 		scene.objects.push_back(obj);
 	}
 
+	Light *light = (Light *)malloc(sizeof(Light));
+	light = new Light(Vector(0, 6, 0));
+	scene.lights.push_back(light);
 
 	while (true) {
 		handleMousePos();
@@ -288,18 +288,21 @@ int main(int argc, char *argv[]) {
 			isAnotherEvent = window.pollForInputEvents(event);
 		}
 
-		draw(window);
-		window.renderFrame();
-		frameCount+=1;
-		if(frameCount >= 150){
-			break;
+		if(frameCount == 0){
+			draw(window);
+			window.renderFrame();
 		}
+		frameCount+=1;
 	}
+
 	for(SceneObject *obj : scene.objects){
 		for(Triangle *tri : obj->triangles){
 			free(tri);
 		}
 		free(obj);
+	}
+	for(Light *light : scene.lights){
+		free(light);
 	}
 	for(Material * mat : materials){
 		free(mat);

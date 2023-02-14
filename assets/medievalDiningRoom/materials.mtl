@@ -1,0 +1,11 @@
+newmtl Ceiling
+diffuseMap assets/textures/woodceiling/WoodCeiling_BaseColor.ppm
+diffuse 0.000000 0.000000 1.000000
+
+newmtl Wall
+diffuseMap assets/textures/wallstone/WallStone_BaseColor.ppm
+diffuse 1.000000 1.000000 1.000000
+
+newmtl Floor
+diffuseMap assets/textures/woodfloor/WoodFloor_BaseColor.ppm
+diffuse 0.700000 0.700000 0.700000

@@ -71,9 +71,11 @@ void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
         int x = j + startOfLine;
         int y = top.y - i;
         float d = 1/(startOfLineDepth + (j*depthStep));
-        if(scene.depthBuf[x][y] <= d){
-          window.setPixelColour(x, y, col);
-          scene.depthBuf[x][y] = d;
+        if(x >= 0 && x < scene.windowDim.x && y > 0 && y < scene.windowDim.y){
+          if(scene.depthBuf[x][y] <= d){
+            window.setPixelColour(x, y, col);
+            scene.depthBuf[x][y] = d;
+          }
         }
       }
     }
@@ -102,18 +104,22 @@ void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
         int x = j + startOfLine;
         int y = mid.y - i;
         float d = 1/(startOfLineDepth + (j*depthStep));
-        if(scene.depthBuf[x][y] <= d){
-          window.setPixelColour(x, y, col);
-          scene.depthBuf[x][y] = d;
+        if(x >= 0 && x < scene.windowDim.x && y > 0 && y < scene.windowDim.y){
+          if(scene.depthBuf[x][y] <= d){
+            window.setPixelColour(x, y, col);
+            scene.depthBuf[x][y] = d;
+          }
         }
       }
     }
   }
   for(Vector v : {top, mid, bot}){
     float d = 1/(v.z);
-    if(scene.depthBuf[v.x][v.y] <= d){
-      window.setPixelColour(v.x, v.y, col);
-      scene.depthBuf[v.x][v.y] = d;
+    if(v.x >= 0 && v.x < scene.windowDim.x && v.y > 0 && v.y < scene.windowDim.y){
+      if(scene.depthBuf[v.x][v.y] <= d){
+        window.setPixelColour(v.x, v.y, col);
+        scene.depthBuf[v.x][v.y] = d;
+      }
     }
   }
 }
