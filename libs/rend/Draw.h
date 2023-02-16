@@ -9,6 +9,7 @@ uint32_t packCol(Colour col);
 Colour unpackCol(uint32_t col);
 Vector unpackColToVec(uint32_t col);
 Colour dimCol(Colour col, float dimness);
+Colour brightCol(Colour col, float brightPerc);
 
 std::vector<float> linearInterpolation(float start, float end, int count);
 

@@ -17,6 +17,11 @@ Colour dimCol(Colour col, float dimness){
 	result.blue = col.blue*dimness;
 	return result;
 }
+Colour brightCol(Colour col, float brightPerc){
+	if(brightPerc >= 1) { brightPerc = 1; }
+	if(brightPerc <= 0) { brightPerc = 0; }
+	return Colour(col.name, (int)((255-col.red)*brightPerc + col.red)%256, (int)((255-col.green)*brightPerc + col.green)%256, (int)((255-col.blue)*brightPerc + col.blue)%256);
+}
 Vector unpackColToVec(uint32_t col){
 	Vector result;
 	result.x = (float) ((col >> 16) & 0xFF);

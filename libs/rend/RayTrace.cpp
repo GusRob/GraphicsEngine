@@ -7,6 +7,32 @@ float distanceFromCenter( Vector centerMass, Vector rayOrigin, Vector rayDir) {
   return size(cross(rayDir, originToCenter)) / size(rayDir);       // Perpendicular distance of point to segment.
 }
 
+bool canSeeLight(Scene &scene, Vector light, Vector point){
+  Vector ray = light - point;
+  Vector rayOrigin = point;
+  for(SceneObject *obj : scene.objects){
+    if(distanceFromCenter(obj->centerMass, rayOrigin, ray) <= obj->collisionSphereRadius){
+      for(Triangle *tri : obj->triangles){
+    		Vector e0 = tri->p1 - tri->p0;
+    		Vector e1 = tri->p2 - tri->p0;
+    		Vector SPVector = rayOrigin - tri->p0;
+    		Matrix DEMatrix = transpose(Matrix(-ray, e0, e1));
+    		Vector tempSol = inverse(DEMatrix) * SPVector;
+    		float t = tempSol.x;
+    		float u = tempSol.y;
+    		float v = tempSol.z;
+    		if(t > 0.01 && (u >= 0.0) && (u <= 1.0) && (v >= 0.0) && (v <= 1.0) && (u + v) <= 1.0){
+          if(size(tri->p0 + u*e0 + v*e1 - point) < size(light-point)){
+            return false;
+          }
+    		}
+      }
+    }
+	}
+  return true;
+}
+
+
 std::tuple<bool, Vector, Triangle *> getClosestPointOnRay(Scene &scene, Vector ray, Vector rayOrigin){
   Vector intersectionPoint = scene.camera + Vector(99999, 99999, 99999);
   Triangle *intersectionTriangle = new Triangle();
@@ -73,7 +99,7 @@ Colour interpTexture(Vector p, Triangle *tri){
   return (col);
 }
 
-uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector fromDir){
+uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector from){
   Colour diffuseCol;
   if(tri->mat->textureSet){
     diffuseCol = interpTexture(p, tri);
@@ -81,6 +107,19 @@ uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector fromDir)
     diffuseCol = (tri->mat->col);
   }
 
+  for(Light *light : scene.lights){
+    if(!canSeeLight(scene, light->position, p)){
+      diffuseCol = dimCol(diffuseCol, 0.2);
+    }
+  }
+
+  //TEMP SOLn TO SHOW LIGHT POS - WILL SHOW THROUGH WALLS
+  for(Light *light : scene.lights){
+    float rayDistFromLight = distanceFromCenter(light->position, from, p-from);
+    if(rayDistFromLight <= 1){
+      diffuseCol = brightCol(diffuseCol, 1 - (rayDistFromLight/1));
+    }
+  }
   return packCol(diffuseCol);
 }
 

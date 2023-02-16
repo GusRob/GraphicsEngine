@@ -26,5 +26,7 @@ Extension features not included in last project:
 photon mapping
 ...?
 
+Currently the canseelight algorithm is in a state I am not happy with as it takes too long - I think the solution to this will involve photon mapping so Going to leave as is for the time being and return to this.
+
 
 **Note** the mtl obj and mtl files were handwritten by me, they don't necessarily follow the proper file specifications and syntax, but functionally act the same

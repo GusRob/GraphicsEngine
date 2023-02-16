@@ -190,13 +190,13 @@ std::vector<SceneObject *> objParser(std::string objFilepath, float scale, std::
 				if(mode == 3){
 					vertices.push_back(Vector());
 					currIndex = vertices.size()-1;
-					vertices[currIndex].x = (std::stof(currentWord))*scale;
+					vertices[currIndex].x = (std::stof(currentWord))*scale + translation.x;
 					mode++;
 				} else if(mode == 4){
-					vertices[currIndex].y = (std::stof(currentWord))*scale;
+					vertices[currIndex].y = (std::stof(currentWord))*scale + translation.x;
 					mode++;
 				} else if(mode == 5){
-					vertices[currIndex].z = (std::stof(currentWord))*scale;
+					vertices[currIndex].z = (std::stof(currentWord))*scale + translation.x;
 					mode = 0;
 				}
 			} else if(mode < 9){
@@ -268,16 +268,22 @@ int main(int argc, char *argv[]) {
 
 	std::vector<Material *> materials = mtlParser("assets/medievalDiningRoom/materials.mtl");
 	std::vector<SceneObject *> model = objParser("assets/medievalDiningRoom/room.obj", 2, materials, Vector(0, 0, 0));
+	std::vector<SceneObject *> obj1 = objParser("assets/medievalDiningRoom/shadowTest.obj", 2, materials, Vector(0, 0, 0));
+	model.insert(model.end(), obj1.begin(), obj1.end());
 	//std::vector<Material *> materials = mtlParser("assets/basicCornell/materials.mtl");
 	//std::vector<SceneObject *> model = objParser("assets/basicCornell/cornell-box.obj", 5, materials, Vector(0, 0, 0));
+
 	for(SceneObject *obj : model){
 		obj->calcCollisionSphere();
 		scene.objects.push_back(obj);
 	}
 
 	Light *light = (Light *)malloc(sizeof(Light));
-	light = new Light(Vector(0, 6, 0));
+	light = new Light(Vector(-5, 2, 8));
 	scene.lights.push_back(light);
+	Light *light2 = (Light *)malloc(sizeof(Light));
+	light2 = new Light(Vector(5, 2, -8));
+	scene.lights.push_back(light2);
 
 	while (true) {
 		handleMousePos();
