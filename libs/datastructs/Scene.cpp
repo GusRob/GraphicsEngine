@@ -31,12 +31,20 @@ void Scene::lookAt(Vector target){
 
 }
 
-
 void Scene::rasterScene(DrawingWindow &window){
   this->resetBuf();
   for(SceneObject *obj : objects){
     for(Triangle *tri : obj->triangles){
       fill3DTriangle(window, *this, tri);
+    }
+  }
+}
+
+void Scene::wireframeScene(DrawingWindow &window){
+  this->resetBuf();
+  for(SceneObject *obj : objects){
+    for(Triangle *tri : obj->triangles){
+      draw3DTriangle(window, *this, tri);
     }
   }
 }

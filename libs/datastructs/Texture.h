@@ -11,7 +11,7 @@ struct Texture {
   std::vector<uint32_t> normalMap;
   std::vector<uint32_t> heightMap;
   std::vector<uint32_t> roughnessMap;
-  std::vector<uint32_t> ambientMap;
+  std::vector<uint32_t> amboccMap;
 
   std::string filepath;
 
@@ -20,8 +20,13 @@ struct Texture {
 
   Texture(std::string filepath);
   Texture();
+  std::vector<uint32_t> readPPM(std::string filepath);
 
   void addDiffuseMap(std::string filepath);
+  void addHeightMap(std::string filepath);
+  void addNormalMap(std::string filepath);
+  void addRoughnessMap(std::string filepath);
+  void addAmboccMap(std::string filepath);
 
 };
 

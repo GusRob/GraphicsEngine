@@ -24,5 +24,6 @@ struct Scene {
 
 
   void rasterScene(DrawingWindow &window);
+  void wireframeScene(DrawingWindow &window);
   void raytraceScene(DrawingWindow &window, bool progress);
 };

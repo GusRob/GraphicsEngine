@@ -6,13 +6,61 @@ Vector getPointOnCanvas(Scene &scene, Vector p){
   Vector w = scene.windowDim;
   Vector camToPoint = p - scene.camera;
   camToPoint = scene.cameraAngle * camToPoint;
-  float i = ( (camToPoint.x/camToPoint.z) + 1) * w.x/2;
-  float j = ( (camToPoint.y/camToPoint.z) + 1) * w.y/2;
+  float pseudoZ = fabs(camToPoint.z);
+  if(pseudoZ < 1){ pseudoZ = 1; }
+  float i = ( (camToPoint.x/pseudoZ) + 1) * w.x/2;
+  float j = ( (camToPoint.y/pseudoZ) + 1) * w.y/2;
   return Vector(i, j, -camToPoint.z);
 }
 
+bool isPointInView(Scene &scene, Vector p){
+  Vector w = scene.windowDim;
+  Vector camToPoint = p - scene.camera;
+  camToPoint = scene.cameraAngle * camToPoint;
+  float pseudoZ = fabs(camToPoint.z);
+  float i = ( (camToPoint.x/pseudoZ) + 1) * w.x/2;
+  float j = ( (camToPoint.y/pseudoZ) + 1) * w.y/2;
+  return (pseudoZ >= 1) && (i >= 0) && (i <= w.x) && (j >= 0) && (j <= w.y);
+}
+
+std::vector<Triangle *> sliceTriangle(Scene &scene, Triangle *tri){
+  bool p0_inView = isPointInView(scene, tri->p0);
+  bool p1_inView = isPointInView(scene, tri->p1);
+  bool p2_inView = isPointInView(scene, tri->p2);
+  Vector v0 = tri->p0;
+  Vector v1 = tri->p1;
+  Vector v2 = tri->p2;
+  int numPointsInView = p0_inView + p1_inView + p2_inView;
+  //std::cout << numPointsInView << std::endl;
+  std::vector<Triangle *> tris;
+  if(numPointsInView == 3){
+    tris.push_back(tri);
+  } else if(numPointsInView == 2){
+    if(!p1_inView){
+      std::swap(v1, v0);
+    } else if(!p2_inView){
+      std::swap(v2, v0);
+    }
+    //CREATE TWO TRIANGLES TO MAKE UP QUAD
+    //v0 is not in view
+    tris.push_back(tri);
+
+  } else if(numPointsInView == 1){
+    if(p1_inView){
+      std::swap(v1, v0);
+    } else if(p2_inView){
+      std::swap(v2, v0);
+    }
+    //MOVE EXT POINTS TO EDGES OF VIEW
+    //v0 is in view
+    tris.push_back(tri);
+
+  }
+  return tris;
+}
+
 //triangle drawing function
-void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+void draw3DTriangle_Simple(DrawingWindow &window, Scene &scene, Triangle *tri){
   Vector p0 = getPointOnCanvas(scene, tri->p0);
   Vector p1 = getPointOnCanvas(scene, tri->p1);
   Vector p2 = getPointOnCanvas(scene, tri->p2);
@@ -21,8 +69,15 @@ void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
   drawLine(window, p2, p0, tri->mat->col);
 }
 
+void draw3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+  std::vector<Triangle *> tris = sliceTriangle(scene, tri);
+  for(Triangle *t : tris){
+    draw3DTriangle_Simple(window, scene, t);
+  }
+}
+
 //triangle drawing function
-void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+void fill3DTriangle_Simple(DrawingWindow &window, Scene &scene, Triangle *tri){
   uint32_t col = packCol(tri->mat->col);
   Vector top = getPointOnCanvas(scene, tri->p0);
   Vector mid = getPointOnCanvas(scene, tri->p1);
@@ -121,5 +176,13 @@ void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
         scene.depthBuf[v.x][v.y] = d;
       }
     }
+  }
+}
+
+
+void fill3DTriangle(DrawingWindow &window, Scene &scene, Triangle *tri){
+  std::vector<Triangle *> tris = sliceTriangle(scene, tri);
+  for(Triangle *t : tris){
+    fill3DTriangle_Simple(window, scene, t);
   }
 }

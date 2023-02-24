@@ -44,11 +44,13 @@ void draw(DrawingWindow &window) {
 
 	scene.camera = rotateY * scene.camera;
 	*/
-	scene.camera = Vector(0, 0, 20);
+	scene.camera = Vector(0, 0, 19);
 	Vector origin = Vector(0, 0, 0);
 	scene.lookAt(origin);
 
 	scene.raytraceScene(window, frameCount == 0);
+	//scene.rasterScene(window);
+	//scene.wireframeScene(window);
 }
 
 ////////////////////
@@ -72,6 +74,8 @@ void handleMousePos(){
 // OBJ/MTL PARSER //
 ////////////////////
 
+//NOTE: These need refactoring, they are very messy
+
 std::vector<Material *> mtlParser(std::string mtlFilepath){
 	std::vector<Material *> materials;
 	std::ifstream ifs (mtlFilepath, std::ifstream::in);
@@ -90,6 +94,14 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 					mode = 2;
 				} else if(currentWord == "diffuseMap"){
 					mode = 5;
+				} else if(currentWord == "heightMap"){
+					mode = 6;
+				} else if(currentWord == "normalMap"){
+					mode = 7;
+				} else if(currentWord == "roughnessMap"){
+					mode = 8;
+				} else if(currentWord == "amboccMap"){
+					mode = 9;
 				} else {
 					//std::cout << "err: " << currentWord << std::endl;
 				}
@@ -118,6 +130,18 @@ std::vector<Material *> mtlParser(std::string mtlFilepath){
 			} else {
 				if(mode == 5){
 					currentTex.addDiffuseMap(currentWord);
+					mode = 0;
+				} else if(mode == 6){
+					currentTex.addHeightMap(currentWord);
+					mode = 0;
+				} else if(mode == 7){
+					currentTex.addNormalMap(currentWord);
+					mode = 0;
+				} else if(mode == 8){
+					currentTex.addRoughnessMap(currentWord);
+					mode = 0;
+				} if(mode == 9){
+					currentTex.addAmboccMap(currentWord);
 					mode = 0;
 				}
 			}
