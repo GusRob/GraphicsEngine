@@ -1,0 +1,57 @@
+o back_wall
+usemtl Wall
+vertex -10 -3 -10
+vertex 10 -3 -10
+vertex 10 3 -10
+vertex -10 3 -10
+texture 0.00000 0.00000
+texture 0.00000 1.00000
+texture 2.00000 0.00000
+texture 2.00000 1.00000
+face 1/4 3/1 4/3
+face 1/4 2/2 3/1
+
+o ceiling
+usemtl Ceiling
+vertex -10 3 10
+vertex -10 3 -10
+vertex 10 3 -10
+vertex 10 3 10
+face 6/4 8/1 5/3
+face 6/4 7/2 8/1
+
+o floor
+usemtl Floor
+vertex -10 -3 10
+vertex 10 -3 10
+vertex 10 -3 -10
+vertex -10 -3 -10
+face 10/4 12/1 9/2
+face 10/4 11/3 12/1
+
+o left_wall
+usemtl Wall
+vertex -10 -3 10
+vertex -10 -3 -10
+vertex -10 3 -10
+vertex -10 3 10
+face 13/4 15/1 16/3
+face 13/4 14/2 15/1
+
+o right_wall
+usemtl Wall
+vertex 10 -3 -10
+vertex 10 -3 10
+vertex 10 3 10
+vertex 10 3 -10
+face 18/4 20/1 17/2
+face 18/4 19/3 20/1
+
+o front_wall
+usemtl Wall
+vertex -10 -3 10
+vertex 10 -3 10
+vertex 10 3 10
+vertex -10 3 10
+face 21/4 23/1 24/3
+face 21/4 22/2 23/1
