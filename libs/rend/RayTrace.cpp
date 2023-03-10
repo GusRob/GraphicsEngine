@@ -107,12 +107,13 @@ uint32_t getColourAtPoint(Scene &scene, Vector p, Triangle *tri, Vector from){
     diffuseCol = (tri->mat->col);
   }
 
+  bool atLeastOne = false;
   for(Light *light : scene.lights){
     if(!canSeeLight(scene, light->position, p)){
-      diffuseCol = dimCol(diffuseCol, 0.2);
+      atLeastOne = true;
+      diffuseCol = dimCol(diffuseCol, 0.8);
     }
   }
-
   //TEMP SOLn TO SHOW LIGHT POS - WILL SHOW THROUGH WALLS
   for(Light *light : scene.lights){
     float rayDistFromLight = distanceFromCenter(light->position, from, p-from);

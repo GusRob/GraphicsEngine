@@ -34,17 +34,10 @@ Scene scene = Scene(WIDTH, HEIGHT);
 void draw(DrawingWindow &window) {
 	window.clearPixels();
 	scene.resetBuf();
-/*
-	float cos10 = cos(0.01);
-	float sin10 = sin(0.01);
 
-	float rotArrY[][3] = {{cos10, 0, sin10}, {0, 1, 0}, {-sin10, 0, cos10}};
 
-	Matrix rotateY = Matrix(rotArrY);
 
-	scene.camera = rotateY * scene.camera;
-	*/
-	scene.camera = Vector(0, 0, 19);
+	scene.camera = Vector(0, 0, -19);
 	Vector origin = Vector(0, 0, 0);
 	scene.lookAt(origin);
 
@@ -292,7 +285,7 @@ int main(int argc, char *argv[]) {
 
 	std::vector<Material *> materials = mtlParser("assets/medievalDiningRoom/materials.mtl");
 	std::vector<SceneObject *> model = objParser("assets/medievalDiningRoom/room.obj", 2, materials, Vector(0, 0, 0));
-	std::vector<SceneObject *> obj1 = objParser("assets/medievalDiningRoom/shadowTest.obj", 2, materials, Vector(0, 0, 0));
+	std::vector<SceneObject *> obj1 = objParser("assets/medievalDiningRoom/table.obj", 2, materials, Vector(0, 0, 0));
 	model.insert(model.end(), obj1.begin(), obj1.end());
 	//std::vector<Material *> materials = mtlParser("assets/basicCornell/materials.mtl");
 	//std::vector<SceneObject *> model = objParser("assets/basicCornell/cornell-box.obj", 5, materials, Vector(0, 0, 0));
@@ -303,10 +296,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	Light *light = (Light *)malloc(sizeof(Light));
-	light = new Light(Vector(-5, 2, 8));
+	light = new Light(Vector(-5, 4, 8));
 	scene.lights.push_back(light);
 	Light *light2 = (Light *)malloc(sizeof(Light));
-	light2 = new Light(Vector(5, 2, -8));
+	light2 = new Light(Vector(5, 1, -15));
 	scene.lights.push_back(light2);
 
 	while (true) {
